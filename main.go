@@ -9,6 +9,7 @@ import (
 	"strconv"
 )
 
+// TODO get this from the config yaml?
 const keySize = 2048
 const expiryDays = 28
 
@@ -34,6 +35,12 @@ func doFilesSanityCheck(caCrt string, caKey string) {
 	}
 }
 
+func httpFileHandler(route string, path string) {
+	http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path)
+	})
+}
+
 func main() {
 	var caCrt = flag.String("caCrt", "", "path to the CA public key")
 	var caKey = flag.String("caKey", "", "path to the CA private key")
@@ -53,6 +60,11 @@ func main() {
 	ci := newCaInfo(*caCrt, *caKey)
 	ch := certHandler{ci}
 
+	// add routes here
 	http.HandleFunc("/1/cert", ch.certResponder)
+	httpFileHandler("/1/ca.crt", "./public/ca.crt")
+	httpFileHandler("/1/configs.json", "./public/1/configs.json")
+	httpFileHandler("/1/service.json", "./public/1/service.json")
+
 	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
 }
