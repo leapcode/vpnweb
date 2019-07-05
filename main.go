@@ -45,6 +45,10 @@ func main() {
 	var caCrt = flag.String("caCrt", "", "path to the CA public key")
 	var caKey = flag.String("caKey", "", "path to the CA private key")
 	var port = flag.Int("port", 8000, "port where the server will listen")
+	var notls = flag.Bool("notls", false, "disable TLS on the service")
+	var tlskey = flag.String("tls_key", "", "path to the key file for TLS")
+	var tlscrt = flag.String("tls_crt", "", "path to the cert file for TLS")
+	flag.Parse()
 
 	flag.Parse()
 
@@ -66,5 +70,11 @@ func main() {
 	httpFileHandler("/1/configs.json", "./public/1/configs.json")
 	httpFileHandler("/1/service.json", "./public/1/service.json")
 
-	log.Fatal(http.ListenAndServe(":"+strconv.Itoa(*port), nil))
+	pstr := ":" + strconv.Itoa(*port)
+
+	if *notls == true {
+		log.Fatal(http.ListenAndServe(pstr, nil))
+	} else {
+		log.Fatal(http.ListenAndServeTLS(pstr, *tlscrt, *tlskey, nil))
+	}
 }
