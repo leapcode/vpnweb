@@ -17,7 +17,7 @@ const certPrefix = "UNLIMITED"
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
 
-func RandStringRunes(n int) string {
+func randStringRunes(n int) string {
 	b := make([]rune, n)
 	for i := range b {
 		b[i] = letterRunes[mrand.Intn(len(letterRunes))]
@@ -50,11 +50,14 @@ func (ci *caInfo) CertWriter(out io.Writer) {
 	subjectKeyID := make([]byte, 20)
 	rand.Read(subjectKeyID)
 
+	_ = randStringRunes(25)
 	// Prepare certificate
 	cert := &x509.Certificate{
 		SerialNumber: serialNumber,
+
 		Subject: pkix.Name{
-			CommonName: certPrefix + RandStringRunes(25),
+			//CommonName: certPrefix + randStringRunes(25),
+			CommonName: certPrefix,
 		},
 		NotBefore: time.Now().AddDate(0, 0, -7),
 		NotAfter:  time.Now().AddDate(0, 0, expiryDays),
