@@ -43,7 +43,7 @@ def generate(statedir):
             'drbg-seed': tostr(binascii.b2a_hex(drbg_seed)),
             'iat-mode': 0}))
 
-    cert = base64.b64encode(node_id + pub_hex)
+    cert = base64.b64encode(node_id + public)
     print("CERT:", cert)
 
     with open(statedir + '/obfs4_cert.txt', 'w') as certf:
