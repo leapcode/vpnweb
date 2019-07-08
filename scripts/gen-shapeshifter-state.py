@@ -3,7 +3,7 @@
 Generates the Curve25519 keypair that is needed by the shapeshifter-dispatcher
 server.
 
-Depends on python3-axolotl-curve25519 package.
+Depends on python3-pysodium package.
 """
 
 import base64
