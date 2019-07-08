@@ -1,0 +1,32 @@
+{
+    "serial": 3,
+    "version": 3,
+    "locations": { {% for loc in locations %}
+        "{{loc}}": {
+            "name": "{{ locations[loc]["name"] }}",
+            "country_code": "{{ locations[loc]["country_code"] }}",
+            "hemisphere": "{{ locations[loc]["hemisphere"] }}",
+            "timezone": {{ locations[loc]["timezone"] }},
+        },{% endfor %}
+    },
+    "gateways": { {% for gw in gateways %}
+        "{{gw}}": {
+            "host": "{{ gateways[gw]["host"] }}",
+            "ip_address": "{{ gateways[gw]["ip_address"] }}",
+            "location": "{{ gateways[gw]["location"] }}",
+            "capabilities": {
+                "adblock": false,
+                "filter_dns": false,
+                "limited": false,
+                "transport": [ {% for tr, proto, port, options in gateways[gw]["transports"] %}
+                    {"type": "{{ tr }}",
+                     "protocols": ["{{ proto }}"],
+                     "ports": [{{ port }}],{% if options %}
+                     "options": {{ options | tojson }},{% endif %}
+                    },{% endfor %}
+                ],
+            },
+        },{% endfor %}
+    },
+    "openvpn_configuration": {{ openvpn|tojson(indent=8) }}
+}
