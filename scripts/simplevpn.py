@@ -12,7 +12,6 @@ class EIPConfig:
         self.openvpn = dict()
         self.locations = dict()
         self.gateways = dict()
-        self.obfs4_cert = ""
 
 
 def parseConfig(provider_config):
