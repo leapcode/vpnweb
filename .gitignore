@@ -1,2 +1,4 @@
 vpnweb
 deploy/*
+*.swp
+*.swo

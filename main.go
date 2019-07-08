@@ -71,7 +71,7 @@ func main() {
 	httpFileHandler("/1/configs.json", "./public/1/configs.json")
 	httpFileHandler("/1/service.json", "./public/1/service.json")
 	httpFileHandler("/3/service.json", "./public/3/service.json")
-	httpFileHandler("/3/service.json", "./public/3/eip-service.json")
+	httpFileHandler("/3/eip-service.json", "./public/3/eip-service.json")
 
 	pstr := ":" + strconv.Itoa(*port)
 
