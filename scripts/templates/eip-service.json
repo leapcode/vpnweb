@@ -3,11 +3,11 @@
     "version": 3,
     "locations": { {% for loc in locations %}
         "{{loc}}": {
-            "name": "{{ locations[loc]["name"] }}",
-            "country_code": "{{ locations[loc]["country_code"] }}",
-            "hemisphere": "{{ locations[loc]["hemisphere"] }}",
-            "timezone": {{ locations[loc]["timezone"] }},
-        },{% endfor %}
+            "name": "{{ locations[loc]['name'] }}",
+            "country_code": "{{ locations[loc]['country_code'] }}",
+            "hemisphere": "{{ locations[loc]['hemisphere'] }}",
+            "timezone": "{{ locations[loc]['timezone'] }}"
+        }{{ "," if not loop.last }}{% endfor %}
     },
     "gateways": { {% for gw in gateways %}
         "{{gw}}": {
@@ -20,13 +20,13 @@
                 "limited": false,
                 "transport": [ {% for tr, proto, port, options in gateways[gw]["transports"] %}
                     {"type": "{{ tr }}",
-                     "protocols": ["{{ proto }}"],
-                     "ports": [{{ port }}],{% if options %}
+                     "protocols": ["{{ proto }}"],{% if options %}
                      "options": {{ options | tojson }},{% endif %}
-                    },{% endfor %}
-                ],
-            },
-        },{% endfor %}
+                     "ports": [{{ port }}]
+                    }{{ "," if not loop.last }}{% endfor %}
+                ]
+            }
+        }{{ "," if not loop.last }}{% endfor %}
     },
     "openvpn_configuration": {{ openvpn|tojson(indent=8) }}
 }
