@@ -49,9 +49,15 @@ def patchObfs4Cert(config, cert):
             transport, _, _ = options
             if transport == "obfs4":
                 opts['cert'] = cert
-                opts['iat-mode'] = 0
+                opts['iat-mode'] = "0"
             options.append(opts)
     return config
+
+
+def dictToStr(d):
+    for k, v in d.items():
+        d[k] = str(v)
+    return d
 
 
 if __name__ == "__main__":
@@ -75,4 +81,4 @@ if __name__ == "__main__":
     print(t.render(
         locations=config.locations,
         gateways=config.gateways,
-        openvpn=config.openvpn))
+        openvpn=dictToStr(config.openvpn)))
