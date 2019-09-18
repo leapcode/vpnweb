@@ -12,6 +12,7 @@ class EIPConfig:
         self.openvpn = dict()
         self.locations = dict()
         self.gateways = dict()
+        self.provider = dict()
 
 
 def parseConfig(provider_config):
@@ -24,6 +25,7 @@ def parseConfig(provider_config):
         eip.locations.update(yamlIdListToDict(loc))
     for gw in config['gateways']:
         eip.gateways.update(yamlIdListToDict(gw))
+    eip.provider.update(yamlListToDict(config['provider']))
     return eip
 
 
@@ -60,25 +62,42 @@ def dictToStr(d):
     return d
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("provider_config")
-    parser.add_argument("eip_template")
-    parser.add_argument("--obfs4_state")
-    args = parser.parse_args()
+def produceEipConfig(config, obfs4_state, template):
+    config = parseConfig(os.path.abspath(config))
 
-    config = parseConfig(os.path.abspath(args.provider_config))
-
-    if args.obfs4_state:
+    if obfs4_state:
         obfs4_cert = open(
-            args.obfs4_state + '/obfs4_cert.txt').read().rstrip()
+            obfs4_state + '/obfs4_cert.txt').read().rstrip()
     else:
         obfs4_cert = None
     patchObfs4Cert(config, obfs4_cert)
 
-    t = Template(open(args.eip_template).read())
+    t = Template(open(template).read())
 
     print(t.render(
         locations=config.locations,
         gateways=config.gateways,
         openvpn=dictToStr(config.openvpn)))
+
+
+def produceProviderConfig(config, template):
+    config = parseConfig(os.path.abspath(config))
+    t = Template(open(template).read())
+    print(t.render(
+        provider=config.provider))
+
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-f", "--file")
+    parser.add_argument("-c", "--config")
+    parser.add_argument("-t", "--template")
+    parser.add_argument("--obfs4_state")
+    args = parser.parse_args()
+
+    if args.file == "eip":
+        produceEipConfig(args.config, args.obfs4_state,  args.template)
+    elif args.file == "provider":
+        produceProviderConfig(args.config, args.template)
+    else:
+        print("unknown type of file:", args.file)

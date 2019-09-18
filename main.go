@@ -66,10 +66,12 @@ func main() {
 
 	// add routes here
 	http.HandleFunc("/3/cert", ch.certResponder)
-	httpFileHandler("/3/ca.crt", "./public/ca.crt")
 	httpFileHandler("/3/configs.json", "./public/3/configs.json")
 	httpFileHandler("/3/service.json", "./public/3/service.json")
 	httpFileHandler("/3/config/eip-service.json", "./public/3/eip-service.json")
+	httpFileHandler("/provider.json", "./public/provider.json")
+	httpFileHandler("/ca.crt", "./public/ca.crt")
+	httpFileHandler("/3/ca.crt", "./public/ca.crt")
 
 	pstr := ":" + strconv.Itoa(*port)
 

@@ -31,3 +31,10 @@ gateways:
         - transports:
             - [ "openvpn", "tcp", "443"]
             - [ "obfs4", "tcp", "23042"]
+
+provider:
+    - name: "demo provider"
+    - description: "this is a demo provider"
+    - domain: pt.demo.bitmask.net:8000
+    - api_uri: pt.demo.bitmask.net:8000
+    - fingerprint: "SHA256: 13A6456F7A303E55B8E575D7C53A967C6A524307E69A47A86DA232830AD283DB"
