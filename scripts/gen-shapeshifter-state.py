@@ -14,7 +14,7 @@ import pysodium
 import binascii
 
 BRIDGE_PREAMBLE = "Bridge obfs4 <IP ADDRESS>:<PORT> <FINGERPRINT> cert="
-BRIDGE_END = " iat-mode=0"
+BRIDGE_END = " iatMode=0"
 
 
 def generate(statedir):
@@ -41,7 +41,7 @@ def generate(statedir):
             'private-key': tostr(priv_hex),
             'public-key': tostr(pub_hex),
             'drbg-seed': tostr(binascii.b2a_hex(drbg_seed)),
-            'iat-mode': 0}))
+            'iatMode': 0}))
 
     cert = base64.b64encode(node_id + public)
     print("CERT:", cert)
