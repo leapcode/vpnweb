@@ -7,7 +7,7 @@ RUN apt-get -q update && env DEBIAN_FRONTEND=noninteractive apt-get install -y -
 ENV GOPATH=/go
 WORKDIR $GOPATH
 RUN go get -u 0xacab.org/leap/vpnweb
-RUN strip $GOPATH/leap/vpnweb
+RUN strip $GOPATH/bin/vpnweb
 
 FROM registry.git.autistici.org/ai3/docker/chaperone-base
 
