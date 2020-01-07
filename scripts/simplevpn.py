@@ -51,7 +51,7 @@ def patchObfs4Cert(config, cert):
             transport, _, _ = options
             if transport == "obfs4":
                 opts['cert'] = cert
-                opts['iat-mode'] = "0"
+                opts['iatMode'] = "0"
             options.append(opts)
     return config
 
