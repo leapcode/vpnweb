@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"strconv"
+	"reflect"
 )
 
-// TODO get this from the config yaml?
 const keySize = 2048
 const expiryDays = 28
+const DefaultAuthenticationModule = "anonymous"
 
 type certHandler struct {
 	cainfo caInfo
@@ -18,6 +18,30 @@ type certHandler struct {
 
 func (ch *certHandler) certResponder(w http.ResponseWriter, r *http.Request) {
 	ch.cainfo.CertWriter(w)
+}
+
+type Opts struct {
+	Notls  bool
+	CaCrt  string
+	CaKey  string
+	TlsCrt string
+	TlsKey string
+	Port   string
+	Auth   string
+}
+
+func (o *Opts) fallbackToEnv(field string, envVar string, defaultVal string) {
+	r := reflect.ValueOf(o)
+	f := reflect.Indirect(r).FieldByName(field)
+
+	if f.String() == "" {
+		val, exists := os.LookupEnv(envVar)
+		if exists && val != "" {
+			f.SetString(val)
+		} else {
+			f.SetString(defaultVal)
+		}
+	}
 }
 
 func doCaFilesSanityCheck(caCrt string, caKey string) {
@@ -44,51 +68,51 @@ func httpFileHandler(route string, path string) {
 	})
 }
 
-type Opts struct {
-	caCrt  string
-	caKey  string
-	port   int
-	notls  bool
-	tlsCrt string
-	tlsKey string
-}
-
 func initializeFlags(opts *Opts) {
-	flag.StringVar(&opts.caCrt, "caCrt", "", "path to the CA public key")
-	flag.StringVar(&opts.caKey, "caKey", "", "path to the CA private key")
-	flag.IntVar(&opts.port, "port", 8000, "port where the server will listen")
-	flag.BoolVar(&opts.notls, "notls", false, "disable TLS on the service")
-	flag.StringVar(&opts.tlsCrt, "tls_crt", "", "path to the cert file for TLS")
-	flag.StringVar(&opts.tlsKey, "tls_key", "", "path to the key file for TLS")
+
+	flag.BoolVar(&opts.Notls, "notls", false, "disable TLS on the service")
+	flag.StringVar(&opts.CaCrt, "caCrt", "", "path to the CA public key")
+	flag.StringVar(&opts.CaKey, "caKey", "", "path to the CA private key")
+	flag.StringVar(&opts.TlsCrt, "tls_crt", "", "path to the cert file for TLS")
+	flag.StringVar(&opts.TlsKey, "tls_key", "", "path to the key file for TLS")
+	flag.StringVar(&opts.Port, "port", "", "port where the server will listen (default: 8000)")
+	flag.StringVar(&opts.Auth, "auth", "", "authentication module (anonymous, sip)")
 	flag.Parse()
 
-	auth := os.Getenv("AUTH")
-	log.Println("AUTH-->", auth)
-
+	opts.fallbackToEnv("CaCrt", "VPNWEB_CACRT", "")
+	opts.fallbackToEnv("CaKey", "VPNWEB_CAKEY", "")
+	opts.fallbackToEnv("TlsCrt", "VPNWEB_TLSCRT", "")
+	opts.fallbackToEnv("TlsKey", "VPNWEB_TLSKEY", "")
+	opts.fallbackToEnv("Port", "VPNWEB_PORT", "8000")
+	opts.fallbackToEnv("Auth", "VPNWEB_AUTH", DefaultAuthenticationModule)
 }
 
 func checkConfigurationOptions(opts *Opts) {
 
-	if opts.caCrt == "" {
+	if opts.CaCrt == "" {
 		log.Fatal("missing caCrt parameter")
 	}
-	if opts.caKey == "" {
+	if opts.CaKey == "" {
 		log.Fatal("missing caKey parameter")
 	}
 
-	if opts.notls == false {
-		if opts.tlsCrt == "" {
+	if opts.Notls == false {
+		if opts.TlsCrt == "" {
 			log.Fatal("missing tls_crt parameter. maybe use -notls?")
 		}
-		if opts.tlsKey == "" {
+		if opts.TlsKey == "" {
 			log.Fatal("missing tls_key parameter. maybe use -notls?")
 		}
 	}
 
-	doCaFilesSanityCheck(opts.caCrt, opts.caKey)
-	if opts.notls == false {
-		doTlsFilesSanityCheck(opts.tlsCrt, opts.tlsKey)
+	doCaFilesSanityCheck(opts.CaCrt, opts.CaKey)
+	if opts.Notls == false {
+		doTlsFilesSanityCheck(opts.TlsCrt, opts.TlsKey)
 	}
+
+	log.Println("authentication module:", opts.Auth)
+
+	// TODO -- check authentication module is valud, bail out otherwise
 }
 
 func main() {
@@ -96,7 +120,7 @@ func main() {
 	initializeFlags(opts)
 	checkConfigurationOptions(opts)
 
-	ci := newCaInfo(opts.caCrt, opts.caKey)
+	ci := newCaInfo(opts.CaCrt, opts.CaKey)
 	ch := certHandler{ci}
 
 	// add routes here
@@ -108,12 +132,13 @@ func main() {
 	httpFileHandler("/ca.crt", "./public/ca.crt")
 	httpFileHandler("/3/ca.crt", "./public/ca.crt")
 
-	pstr := ":" + strconv.Itoa(opts.port)
+	pstr := ":" + opts.Port
+	log.Println("serving vpnweb in port", opts.Port)
 
-	if opts.notls == true {
+	if opts.Notls == true {
 		log.Fatal(http.ListenAndServe(pstr, nil))
 	} else {
-		log.Fatal(http.ListenAndServeTLS(pstr, opts.tlsCrt, opts.tlsKey, nil))
+		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, nil))
 
 	}
 }

@@ -1,7 +1,7 @@
 build:
 	go build
 demo:
-	. config/CONFIG && ./vpnweb -caCrt test/files/ca.crt -caKey test/files/ca.key -notls
+	. config/CONFIG && ./vpnweb -notls
 clean:
 	rm -f public/1/*
 	rm public/ca.crt
