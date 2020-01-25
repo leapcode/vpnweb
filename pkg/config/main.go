@@ -19,6 +19,8 @@ type Opts struct {
 	Auth   string
 }
 
+// TODO -- remove use of reflect
+
 func (o *Opts) fallbackToEnv(field string, envVar string, defaultVal string) {
 	r := reflect.ValueOf(o)
 	f := reflect.Indirect(r).FieldByName(field)

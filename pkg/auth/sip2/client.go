@@ -27,7 +27,7 @@ func NewClient(host, port, location string) Client {
 func (c *Client) Connect() (bool, error) {
 	conn, err := telnet.DialTo(c.Host + ":" + c.Port)
 	if nil != err {
-		log.Println(log.Printf("error: %v", err))
+		log.Println("error", err)
 		return false, err
 	}
 	c.conn = conn

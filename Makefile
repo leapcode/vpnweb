@@ -1,7 +1,9 @@
 build:
 	go build cmd/vpnweb/vpnweb.go
-demo:
+demo-sip:
 	. config/CONFIG && ./vpnweb -notls -auth=sip
+demo-anon:
+	. config/CONFIG && ./vpnweb -notls -auth=anon
 clean:
 	rm -f public/1/*
 	rm public/ca.crt

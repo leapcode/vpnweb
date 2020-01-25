@@ -114,7 +114,7 @@ func getParser() *Parser {
 		txt := msg[:len(msg)-len(terminator)]
 		code, err := strconv.Atoi(txt[:2])
 		if nil != err {
-			log.Println("Error parsing integer: %s", txt[:2])
+			log.Printf("Error parsing integer: %s\n", txt[:2])
 		}
 		spec := parser.getMessageSpecByCode(code)
 		txt = txt[2:]

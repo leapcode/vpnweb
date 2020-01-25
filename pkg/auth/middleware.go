@@ -1,6 +1,8 @@
 package auth
 
 import (
+	"0xacab.org/leap/vpnweb/pkg/auth/sip2"
+	"0xacab.org/leap/vpnweb/pkg/config"
 	"0xacab.org/leap/vpnweb/pkg/web"
 	"github.com/auth0/go-jwt-middleware"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -12,20 +14,33 @@ const anonAuth string = "anon"
 const sipAuth string = "sip"
 
 /* FIXME -- get this from configuration variables */
-var jwtSecret = []byte("somethingverysecret")
 
-func Authenticator(auth string) {
+var jwtSigningSecret = []byte("thesingingkey")
+
+func bailOnBadAuthModule(module string) {
+	log.Fatal("Unknown auth module: '", module, "'. Should be one of: ", anonAuth, ", ", sipAuth, ".")
+}
+
+func Authenticator(opts *config.Opts) http.HandlerFunc {
+	switch opts.Auth {
+	case anonAuth:
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.Error(w, "no authentication in anon mode", http.StatusBadRequest)
+		})
+	case sipAuth:
+		return sip2.SipAuthenticator(opts)
+	default:
+		bailOnBadAuthModule(opts.Auth)
+	}
+	return nil
 }
 
 func RestrictedMiddleware(auth string, ch web.CertHandler) http.Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			return jwtSecret, nil
+			return jwtSigningSecret, nil
 		},
-		// When set, the middleware verifies that tokens are signed with the specific signing algorithm
-		// If the signing method is not constant the ValidationKeyGetter callback can be used to implement additional checks
-		// Important to avoid security issues described here: https://auth0.com/blog/2015/03/31/critical-vulnerabilities-in-json-web-token-libraries/
 		SigningMethod: jwt.SigningMethodHS256,
 	})
 
@@ -35,8 +50,7 @@ func RestrictedMiddleware(auth string, ch web.CertHandler) http.Handler {
 	case sipAuth:
 		return jwtMiddleware.Handler(http.HandlerFunc(ch.CertResponder))
 	default:
-		log.Fatal("Unknown auth module: '", auth, "'. Should be one of: ", anonAuth, ", ", sipAuth, ".")
+		bailOnBadAuthModule(auth)
 	}
-	// should not get here
 	return nil
 }
