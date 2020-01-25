@@ -1,5 +1,6 @@
-vpnweb
 deploy/*
 .mypy_cache
 *.swp
 *.swo
+vpnweb
+public/*

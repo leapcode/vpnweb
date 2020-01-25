@@ -1,4 +1,4 @@
 export VPNWEB_AUTH=sip
 export VPNWEB_CAKEY=test/files/ca.key
 export VPNWEB_CACRT=test/files/ca.crt
-export VPNWEB_PORT=3000
+export VPNWEB_PORT=8000

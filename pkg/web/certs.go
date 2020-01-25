@@ -1,4 +1,4 @@
-package main
+package web
 
 import (
 	"crypto/rand"
@@ -13,6 +13,8 @@ import (
 	"time"
 )
 
+const keySize = 2048
+const expiryDays = 28
 const certPrefix = "UNLIMITED"
 
 var letterRunes = []rune("abcdefghijklmnopqrstuvwxyz")
@@ -29,11 +31,12 @@ type caInfo struct {
 	cacrt, cakey string
 }
 
-func newCaInfo(cacrt string, cakey string) caInfo {
+func NewCaInfo(cacrt string, cakey string) caInfo {
 	return caInfo{cacrt, cakey}
 }
 
 // CertWriter main handler
+
 func (ci *caInfo) CertWriter(out io.Writer) {
 	catls, err := tls.LoadX509KeyPair(ci.cacrt, ci.cakey)
 

@@ -1,24 +1,13 @@
-package main
+package config
 
 import (
 	"flag"
 	"log"
-	"net/http"
 	"os"
 	"reflect"
 )
 
-const keySize = 2048
-const expiryDays = 28
 const DefaultAuthenticationModule = "anonymous"
-
-type certHandler struct {
-	cainfo caInfo
-}
-
-func (ch *certHandler) certResponder(w http.ResponseWriter, r *http.Request) {
-	ch.cainfo.CertWriter(w)
-}
 
 type Opts struct {
 	Notls  bool
@@ -62,14 +51,7 @@ func doTlsFilesSanityCheck(tlsCrt string, tlsKey string) {
 	}
 }
 
-func httpFileHandler(route string, path string) {
-	http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path)
-	})
-}
-
-func initializeFlags(opts *Opts) {
-
+func InitializeFlags(opts *Opts) {
 	flag.BoolVar(&opts.Notls, "notls", false, "disable TLS on the service")
 	flag.StringVar(&opts.CaCrt, "caCrt", "", "path to the CA public key")
 	flag.StringVar(&opts.CaKey, "caKey", "", "path to the CA private key")
@@ -87,8 +69,7 @@ func initializeFlags(opts *Opts) {
 	opts.fallbackToEnv("Auth", "VPNWEB_AUTH", DefaultAuthenticationModule)
 }
 
-func checkConfigurationOptions(opts *Opts) {
-
+func CheckConfigurationOptions(opts *Opts) {
 	if opts.CaCrt == "" {
 		log.Fatal("missing caCrt parameter")
 	}
@@ -110,35 +91,7 @@ func checkConfigurationOptions(opts *Opts) {
 		doTlsFilesSanityCheck(opts.TlsCrt, opts.TlsKey)
 	}
 
-	log.Println("authentication module:", opts.Auth)
+	log.Println("Authentication module:", opts.Auth)
 
 	// TODO -- check authentication module is valud, bail out otherwise
-}
-
-func main() {
-	opts := new(Opts)
-	initializeFlags(opts)
-	checkConfigurationOptions(opts)
-
-	ci := newCaInfo(opts.CaCrt, opts.CaKey)
-	ch := certHandler{ci}
-
-	// add routes here
-	http.HandleFunc("/3/cert", ch.certResponder)
-	httpFileHandler("/3/configs.json", "./public/3/configs.json")
-	httpFileHandler("/3/service.json", "./public/3/service.json")
-	httpFileHandler("/3/config/eip-service.json", "./public/3/eip-service.json")
-	httpFileHandler("/provider.json", "./public/provider.json")
-	httpFileHandler("/ca.crt", "./public/ca.crt")
-	httpFileHandler("/3/ca.crt", "./public/ca.crt")
-
-	pstr := ":" + opts.Port
-	log.Println("serving vpnweb in port", opts.Port)
-
-	if opts.Notls == true {
-		log.Fatal(http.ListenAndServe(pstr, nil))
-	} else {
-		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, nil))
-
-	}
 }

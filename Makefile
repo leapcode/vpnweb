@@ -1,5 +1,5 @@
 build:
-	go build
+	go build cmd/vpnweb/vpnweb.go
 demo:
 	. config/CONFIG && ./vpnweb -notls
 clean:
