@@ -24,8 +24,8 @@ func main() {
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
 	*/
 
-	http.Handle("/3/cert", auth.RestrictedMiddleware(opts.Auth, ch))
-	http.HandleFunc("/3/auth", auth.Authenticator(opts))
+	http.Handle("/3/cert", auth.RestrictedMiddleware(opts, ch))
+	http.HandleFunc("/3/auth", auth.AuthenticatorMiddleware(opts))
 
 	/* static files */
 

@@ -11,23 +11,29 @@ import (
 )
 
 const anonAuth string = "anon"
-const sipAuth string = "sip"
-
-/* FIXME -- get this from configuration variables */
-
-var jwtSigningSecret = []byte("thesingingkey")
+const sip2Auth string = "sip"
 
 func bailOnBadAuthModule(module string) {
 	log.Fatal("Unknown auth module: '", module, "'. Should be one of: ", anonAuth, ", ", sipAuth, ".")
 }
 
-func Authenticator(opts *config.Opts) http.HandlerFunc {
+func checkForAuthSecret(opts *config.Opts) {
+	if opts.AuthSecret == "" {
+		log.Fatal("Need to provide a AuthSecret value for SIP Authentication")
+	}
+	if len(opts.AuthSecret) < 20 {
+		log.Fatal("Please provider an AuthSecret longer than 20 chars")
+	}
+}
+
+func AuthenticatorMiddleware(opts *config.Opts) http.HandlerFunc {
 	switch opts.Auth {
 	case anonAuth:
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, "no authentication in anon mode", http.StatusBadRequest)
 		})
-	case sipAuth:
+	case sip2Auth:
+		checkForAuthSecret(opts)
 		return sip2.SipAuthenticator(opts)
 	default:
 		bailOnBadAuthModule(opts.Auth)
@@ -35,22 +41,23 @@ func Authenticator(opts *config.Opts) http.HandlerFunc {
 	return nil
 }
 
-func RestrictedMiddleware(auth string, ch web.CertHandler) http.Handler {
+func RestrictedMiddleware(opts *config.Opts, ch web.CertHandler) http.Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
-			return jwtSigningSecret, nil
+			return []byte(opts.AuthSecret), nil
 		},
 		SigningMethod: jwt.SigningMethodHS256,
 	})
 
-	switch auth {
+	switch opts.Auth {
 	case anonAuth:
 		return http.HandlerFunc(ch.CertResponder)
-	case sipAuth:
+	case sip2Auth:
+		checkForAuthSecret(opts)
 		return jwtMiddleware.Handler(http.HandlerFunc(ch.CertResponder))
 	default:
-		bailOnBadAuthModule(auth)
+		bailOnBadAuthModule(opts.Auth)
 	}
 	return nil
 }

@@ -5,38 +5,51 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
+	"os"
 	"time"
 
 	"0xacab.org/leap/vpnweb/pkg/config"
 )
 
-const LibraryLocation string = "testlibrary"
-const SipUser string = "leap"
-const SipPasswd string = "Kohapassword1!"
-
-// XXX duplicated, pass in opts
-var jwtSigningSecret = []byte("thesingingkey")
+const SipUserVar string = "VPNWEB_SIP_USER"
+const SipPassVar string = "VPNWEB_SIP_PASS"
+const SipPortVar string = "VPNWEB_SIP_PORT"
+const SipHostVar string = "VPNWEB_SIP_HOST"
+const SipLibrLocVar string = "VPNWEB_SIP_LIBR_LOCATION"
 
 type Credentials struct {
 	User     string
 	Password string
 }
 
-func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
-	log.Println("Initializing sip2 authenticator...")
+func getConfigFromEnv(envVar string) string {
+	val, exists := os.LookupEnv(envVar)
+	if !exists {
+		log.Fatal("Need to set required env var:", envVar)
+	}
+	return val
+}
 
-	/* TODO -- should pass specific SIP options as a secondary struct */
+func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
 	/* TODO -- catch connection errors */
 
-	sip := NewClient("localhost", "6001", LibraryLocation)
+	log.Println("Initializing sip2 authenticator")
+
+	SipUser := getConfigFromEnv(SipUserVar)
+	SipPass := getConfigFromEnv(SipPassVar)
+	SipHost := getConfigFromEnv(SipHostVar)
+	SipPort := getConfigFromEnv(SipPortVar)
+	SipLibrLoc := getConfigFromEnv(SipLibrLocVar)
+
+	sip := NewClient(SipHost, SipPort, SipLibrLoc)
 
 	ok, err := sip.Connect()
 	if err != nil {
-		log.Fatal("cannot connect sip client")
+		log.Fatal("Cannot connect sip client")
 	}
-	ok = sip.Login(SipUser, SipPasswd)
+	ok = sip.Login(SipUser, SipPass)
 	if !ok {
-		log.Println("Error on SIP login")
+		log.Fatal("Error on SIP login")
 	} else {
 		log.Println("SIP login ok")
 	}
@@ -67,10 +80,8 @@ func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
 		log.Println("Valid auth for user", c.User)
 		token := jwt.New(jwt.SigningMethodHS256)
 		claims := token.Claims.(jwt.MapClaims)
-		/* maybe no uid at all */
-		claims["uid"] = "user"
 		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-		tokenString, _ := token.SignedString(jwtSigningSecret)
+		tokenString, _ := token.SignedString([]byte(opts.AuthSecret))
 		w.Write([]byte(tokenString))
 	})
 	return authTokenHandler

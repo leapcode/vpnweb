@@ -4,33 +4,29 @@ import (
 	"flag"
 	"log"
 	"os"
-	"reflect"
 )
 
 const DefaultAuthenticationModule = "anonymous"
 
 type Opts struct {
-	Notls  bool
-	CaCrt  string
-	CaKey  string
-	TlsCrt string
-	TlsKey string
-	Port   string
-	Auth   string
+	Notls      bool
+	CaCrt      string
+	CaKey      string
+	TlsCrt     string
+	TlsKey     string
+	Port       string
+	Auth       string
+	AuthSecret string
 }
 
-// TODO -- remove use of reflect
+func fallbackToEnv(variable *string, envVar, defaultVar string) {
 
-func (o *Opts) fallbackToEnv(field string, envVar string, defaultVal string) {
-	r := reflect.ValueOf(o)
-	f := reflect.Indirect(r).FieldByName(field)
-
-	if f.String() == "" {
+	if *variable == "" {
 		val, exists := os.LookupEnv(envVar)
 		if exists && val != "" {
-			f.SetString(val)
+			*variable = val
 		} else {
-			f.SetString(defaultVal)
+			*variable = defaultVar
 		}
 	}
 }
@@ -54,21 +50,23 @@ func doTlsFilesSanityCheck(tlsCrt string, tlsKey string) {
 }
 
 func InitializeFlags(opts *Opts) {
-	flag.BoolVar(&opts.Notls, "notls", false, "disable TLS on the service")
-	flag.StringVar(&opts.CaCrt, "caCrt", "", "path to the CA public key")
-	flag.StringVar(&opts.CaKey, "caKey", "", "path to the CA private key")
-	flag.StringVar(&opts.TlsCrt, "tls_crt", "", "path to the cert file for TLS")
-	flag.StringVar(&opts.TlsKey, "tls_key", "", "path to the key file for TLS")
-	flag.StringVar(&opts.Port, "port", "", "port where the server will listen (default: 8000)")
-	flag.StringVar(&opts.Auth, "auth", "", "authentication module (anonymous, sip)")
+	flag.BoolVar(&opts.Notls, "notls", false, "Disable TLS on the service")
+	flag.StringVar(&opts.CaCrt, "caCrt", "", "Path to the CA public key")
+	flag.StringVar(&opts.CaKey, "caKey", "", "Path to the CA private key")
+	flag.StringVar(&opts.TlsCrt, "tlsCrt", "", "Path to the cert file for TLS")
+	flag.StringVar(&opts.TlsKey, "tlsKey", "", "Path to the key file for TLS")
+	flag.StringVar(&opts.Port, "port", "", "Port where the server will listen (default: 8000)")
+	flag.StringVar(&opts.Auth, "auth", "", "Authentication module (anonymous, sip)")
+	flag.StringVar(&opts.AuthSecret, "authSecret", "", "Authentication secret (optional)")
 	flag.Parse()
 
-	opts.fallbackToEnv("CaCrt", "VPNWEB_CACRT", "")
-	opts.fallbackToEnv("CaKey", "VPNWEB_CAKEY", "")
-	opts.fallbackToEnv("TlsCrt", "VPNWEB_TLSCRT", "")
-	opts.fallbackToEnv("TlsKey", "VPNWEB_TLSKEY", "")
-	opts.fallbackToEnv("Port", "VPNWEB_PORT", "8000")
-	opts.fallbackToEnv("Auth", "VPNWEB_AUTH", DefaultAuthenticationModule)
+	fallbackToEnv(&opts.CaCrt, "VPNWEB_CACRT", "")
+	fallbackToEnv(&opts.CaKey, "VPNWEB_CAKEY", "")
+	fallbackToEnv(&opts.TlsCrt, "VPNWEB_TLSCRT", "")
+	fallbackToEnv(&opts.TlsKey, "VPNWEB_TLSKEY", "")
+	fallbackToEnv(&opts.Port, "VPNWEB_PORT", "8000")
+	fallbackToEnv(&opts.Auth, "VPNWEB_AUTH", DefaultAuthenticationModule)
+	fallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTHSECRET", "")
 }
 
 func CheckConfigurationOptions(opts *Opts) {
@@ -94,6 +92,4 @@ func CheckConfigurationOptions(opts *Opts) {
 	}
 
 	log.Println("Authentication module:", opts.Auth)
-
-	// TODO -- check authentication module is valud, bail out otherwise
 }
