@@ -21,11 +21,11 @@ func main() {
 	/* protected routes */
 
 	/* TODO ----
-	http.HandleFunc("/3/auth", auth.AuthMiddleware(opts.Auth))
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
 	*/
 
-	http.Handle("/3/cert", auth.AuthMiddleware(opts.Auth, ch))
+	http.Handle("/3/cert", auth.RestrictedMiddleware(opts.Auth, ch))
+	http.Handle("/3/auth", auth.Authenticator(opts.Auth))
 
 	/* static files */
 

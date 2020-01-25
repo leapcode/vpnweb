@@ -11,14 +11,13 @@ import (
 const anonAuth string = "anon"
 const sipAuth string = "sip"
 
+/* FIXME -- get this from configuration variables */
 var jwtSecret = []byte("somethingverysecret")
 
-func getHandler(ch web.CertHandler) func(w http.ResponseWriter, r *http.Request) {
-	return ch.CertResponder
+func Authenticator(auth string) {
 }
 
-//func AuthMiddleware(auth string, ch web.CertHandler) func(w http.ResponseWriter, r *http.Request) {
-func AuthMiddleware(auth string, ch web.CertHandler) http.Handler {
+func RestrictedMiddleware(auth string, ch web.CertHandler) http.Handler {
 
 	jwtMiddleware := jwtmiddleware.New(jwtmiddleware.Options{
 		ValidationKeyGetter: func(token *jwt.Token) (interface{}, error) {
@@ -38,5 +37,6 @@ func AuthMiddleware(auth string, ch web.CertHandler) http.Handler {
 	default:
 		log.Fatal("Unknown auth module: '", auth, "'. Should be one of: ", anonAuth, ", ", sipAuth, ".")
 	}
+	// should not get here
 	return nil
 }

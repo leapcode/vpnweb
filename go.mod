@@ -8,5 +8,7 @@ require (
 	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/go-martini/martini v0.0.0-20170121215854-22fa46961aab // indirect
 	github.com/gorilla/mux v1.7.3 // indirect
+	github.com/reiver/go-oi v1.0.0 // indirect
+	github.com/reiver/go-telnet v0.0.0-20180421082511-9ff0b2ab096e
 	github.com/urfave/negroni v1.0.0 // indirect
 )
