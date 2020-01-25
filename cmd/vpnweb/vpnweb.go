@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	//"0xacab.org/leap/pkg/auth"
+	"0xacab.org/leap/vpnweb/pkg/auth"
 	"0xacab.org/leap/vpnweb/pkg/config"
 	"0xacab.org/leap/vpnweb/pkg/web"
 )
@@ -22,10 +23,9 @@ func main() {
 	/* TODO ----
 	http.HandleFunc("/3/auth", auth.AuthMiddleware(opts.Auth))
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
-	http.HandleFunc("/3/cert", jwtMiddleware.Handler(ch.certResponder))
 	*/
 
-	http.HandleFunc("/3/cert", ch.CertResponder)
+	http.Handle("/3/cert", auth.AuthMiddleware(opts.Auth, ch))
 
 	/* static files */
 
