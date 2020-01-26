@@ -4,3 +4,4 @@ deploy/*
 *.swo
 vpnweb
 public/*
+test/integration/sipcli/sipcli
