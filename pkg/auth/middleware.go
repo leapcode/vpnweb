@@ -14,7 +14,7 @@ const anonAuth string = "anon"
 const sip2Auth string = "sip"
 
 func bailOnBadAuthModule(module string) {
-	log.Fatal("Unknown auth module: '", module, "'. Should be one of: ", anonAuth, ", ", sipAuth, ".")
+	log.Fatal("Unknown auth module: '", module, "'. Should be one of: ", anonAuth, ", ", sip2Auth, ".")
 }
 
 func checkForAuthSecret(opts *config.Opts) {

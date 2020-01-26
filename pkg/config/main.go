@@ -6,7 +6,7 @@ import (
 	"os"
 )
 
-const DefaultAuthenticationModule = "anonymous"
+const DefaultAuthenticationModule string = "anon"
 
 type Opts struct {
 	Notls      bool
@@ -19,7 +19,9 @@ type Opts struct {
 	AuthSecret string
 }
 
-func fallbackToEnv(variable *string, envVar, defaultVar string) {
+var SIPTelnetTerminator string = ""
+
+func FallbackToEnv(variable *string, envVar, defaultVar string) {
 
 	if *variable == "" {
 		val, exists := os.LookupEnv(envVar)
@@ -60,13 +62,13 @@ func InitializeFlags(opts *Opts) {
 	flag.StringVar(&opts.AuthSecret, "authSecret", "", "Authentication secret (optional)")
 	flag.Parse()
 
-	fallbackToEnv(&opts.CaCrt, "VPNWEB_CACRT", "")
-	fallbackToEnv(&opts.CaKey, "VPNWEB_CAKEY", "")
-	fallbackToEnv(&opts.TlsCrt, "VPNWEB_TLSCRT", "")
-	fallbackToEnv(&opts.TlsKey, "VPNWEB_TLSKEY", "")
-	fallbackToEnv(&opts.Port, "VPNWEB_PORT", "8000")
-	fallbackToEnv(&opts.Auth, "VPNWEB_AUTH", DefaultAuthenticationModule)
-	fallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTHSECRET", "")
+	FallbackToEnv(&opts.CaCrt, "VPNWEB_CACRT", "")
+	FallbackToEnv(&opts.CaKey, "VPNWEB_CAKEY", "")
+	FallbackToEnv(&opts.TlsCrt, "VPNWEB_TLSCRT", "")
+	FallbackToEnv(&opts.TlsKey, "VPNWEB_TLSKEY", "")
+	FallbackToEnv(&opts.Port, "VPNWEB_PORT", "8000")
+	FallbackToEnv(&opts.Auth, "VPNWEB_AUTH", DefaultAuthenticationModule)
+	FallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTH_SECRET", "")
 }
 
 func CheckConfigurationOptions(opts *Opts) {

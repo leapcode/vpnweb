@@ -16,6 +16,9 @@ const SipPassVar string = "VPNWEB_SIP_PASS"
 const SipPortVar string = "VPNWEB_SIP_PORT"
 const SipHostVar string = "VPNWEB_SIP_HOST"
 const SipLibrLocVar string = "VPNWEB_SIP_LIBR_LOCATION"
+const SipTerminatorVar string = "VPNWEB_SIP_TERMINATOR"
+
+const SipDefaultTerminator string = "\r\n"
 
 type Credentials struct {
 	User     string
@@ -30,16 +33,26 @@ func getConfigFromEnv(envVar string) string {
 	return val
 }
 
-func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
-	/* TODO -- catch connection errors */
+func setupTerminatorFromEnv() {
+	config.FallbackToEnv(&TelnetTerminator, SipTerminatorVar, SipDefaultTerminator)
+	if TelnetTerminator == "\\r" {
+		TelnetTerminator = "\r"
+	} else if TelnetTerminator == "\\r\\n" {
+		TelnetTerminator = "\r\n"
+	}
+}
 
-	log.Println("Initializing sip2 authenticator")
+func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
+
+	log.Println("Initializing SIP2 authenticator")
 
 	SipUser := getConfigFromEnv(SipUserVar)
 	SipPass := getConfigFromEnv(SipPassVar)
 	SipHost := getConfigFromEnv(SipHostVar)
 	SipPort := getConfigFromEnv(SipPortVar)
 	SipLibrLoc := getConfigFromEnv(SipLibrLocVar)
+
+	setupTerminatorFromEnv()
 
 	sip := NewClient(SipHost, SipPort, SipLibrLoc)
 

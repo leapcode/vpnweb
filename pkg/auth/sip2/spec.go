@@ -111,7 +111,7 @@ func getParser() *Parser {
 	}
 
 	parser.parseMessage = func(msg string) *Message {
-		txt := msg[:len(msg)-len(terminator)]
+		txt := msg[:len(msg)-len(TelnetTerminator)]
 		code, err := strconv.Atoi(txt[:2])
 		if nil != err {
 			log.Printf("Error parsing integer: %s\n", txt[:2])

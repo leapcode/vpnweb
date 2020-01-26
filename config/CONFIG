@@ -13,3 +13,4 @@ export VPNWEB_SIP_PASS="Kohapassword1!"
 export VPNWEB_SIP_HOST="localhost"
 export VPNWEB_SIP_PORT="6001"
 export VPNWEB_SIP_LIBR_LOCATION=testlibrary
+export VPNWEB_SIP_TERMINATOR="\r"

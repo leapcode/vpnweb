@@ -4,9 +4,10 @@ import (
 	"github.com/reiver/go-telnet"
 )
 
-// TODO depends on how terminator is configured -- take it from config file
-// const terminator string = "\r\n"
-const terminator string = "\r"
+// The terminator can be configured differently for different SIP endpoints.
+// This gets set in sip2.auth according to an environment variable
+
+var TelnetTerminator string
 
 func telnetRead(conn *telnet.Conn) (out string) {
 	var buffer [1]byte
@@ -21,7 +22,7 @@ func telnetRead(conn *telnet.Conn) (out string) {
 		} else {
 			out += string(recvData)
 		}
-		if len(out) > 1 && out[len(out)-len(terminator):] == terminator {
+		if len(out) > 1 && out[len(out)-len(TelnetTerminator):] == TelnetTerminator {
 			break
 		}
 	}
@@ -35,7 +36,6 @@ func telnetSend(conn *telnet.Conn, command string) {
 	}
 
 	var crlfBuffer [2]byte = [2]byte{'\r', '\n'}
-
 	crlf := crlfBuffer[:]
 
 	conn.Write(commandBuffer)
