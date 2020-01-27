@@ -1,10 +1,12 @@
 #!/usr/bin/env python3
 import argparse
-import os
+import os, sys
 
 import yaml
 
 from jinja2 import Template
+
+AUTH_METHODS = ["anon", "sip"]
 
 
 class EIPConfig:
@@ -13,6 +15,7 @@ class EIPConfig:
         self.locations = dict()
         self.gateways = dict()
         self.provider = dict()
+        self.auth = ""
 
 
 def parseConfig(provider_config):
@@ -20,6 +23,7 @@ def parseConfig(provider_config):
         config = yaml.load(conf.read())
     eip = EIPConfig()
     eip.openvpn.update(yamlListToDict(config['openvpn']))
+    configureAuth(eip, config)
 
     for loc in config['locations']:
         eip.locations.update(yamlIdListToDict(loc))
@@ -28,6 +32,12 @@ def parseConfig(provider_config):
     eip.provider.update(yamlListToDict(config['provider']))
     return eip
 
+def configureAuth(eip, config):
+    auth = config.get('auth', 'anon')
+    if auth not in AUTH_METHODS:
+        print("ERROR: unknown auth method", auth)
+        sys.exit(1)
+    eip.auth = auth
 
 def yamlListToDict(values):
     vals = {}
@@ -77,7 +87,8 @@ def produceEipConfig(config, obfs4_state, template):
     print(t.render(
         locations=config.locations,
         gateways=config.gateways,
-        openvpn=dictToStr(config.openvpn)))
+        openvpn=dictToStr(config.openvpn),
+        auth=config.auth))
 
 
 def produceProviderConfig(config, template):

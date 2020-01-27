@@ -1,3 +1,9 @@
+CONFIG=config/demo.yaml
+EIP_TEMPLATE=scripts/templates/eip-service.json.jinja
+EIP_SERVICE=deploy/public/3/eip-service.json
+PROVIDER_TEMPLATE=scripts/templates/provider.json.jinja
+PROVIDER=deploy/public/provider.json
+
 build:
 	go build cmd/vpnweb/vpnweb.go
 demo-sip:
@@ -11,8 +17,8 @@ gen-shapeshifter:
 	scripts/gen-shapeshifter-state.py deploy/shapeshifter-state
 gen-provider:
 	mkdir -p deploy/public/3
-	python3 scripts/simplevpn.py --file=eip --config=config/demo.yaml --template=scripts/templates/eip-service.json.jinja --obfs4_state deploy/shapeshifter-state > deploy/public/3/eip-service.json
-	python3 scripts/simplevpn.py --file=provider --config=config/demo.yaml --template=scripts/templates/provider.json.jinja > deploy/public/provider.json
+	@python3 scripts/simplevpn.py --file=eip --config=$(CONFIG) --template=$(EIP_TEMPLATE) --obfs4_state deploy/shapeshifter-state > $(EIP_SERVICE) || echo "ERROR: see $(EIP_SERVICE) for output"
+	@python3 scripts/simplevpn.py --file=provider --config=$(CONFIG) --template=$(PROVIDER_TEMPLATE) > $(PROVIDER) || echo "ERROR: see $(PROVIDER) for output"
 populate:
 	cp test/1/* public/1/
 	cp test/files/ca.crt public/

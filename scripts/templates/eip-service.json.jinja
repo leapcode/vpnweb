@@ -28,5 +28,6 @@
             }
         }{{ "," if not loop.last }}{% endfor %}
     ],
+    "auth": "{{ auth }}",
     "openvpn_configuration": {{ openvpn|tojson(indent=8) }}
 }
