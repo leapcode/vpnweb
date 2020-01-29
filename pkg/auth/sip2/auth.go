@@ -2,7 +2,7 @@ package sip2
 
 import (
 	"encoding/json"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
 	"os"
@@ -11,14 +11,13 @@ import (
 	"0xacab.org/leap/vpnweb/pkg/config"
 )
 
-const SipUserVar string = "VPNWEB_SIP_USER"
-const SipPassVar string = "VPNWEB_SIP_PASS"
-const SipPortVar string = "VPNWEB_SIP_PORT"
-const SipHostVar string = "VPNWEB_SIP_HOST"
-const SipLibrLocVar string = "VPNWEB_SIP_LIBR_LOCATION"
-const SipTerminatorVar string = "VPNWEB_SIP_TERMINATOR"
-
-const SipDefaultTerminator string = "\r\n"
+const sipUserVar string = "VPNWEB_SIP_USER"
+const sipPassVar string = "VPNWEB_SIP_PASS"
+const sipPortVar string = "VPNWEB_SIP_PORT"
+const sipHostVar string = "VPNWEB_SIP_HOST"
+const sipLibrLocVar string = "VPNWEB_SIP_LIBR_LOCATION"
+const sipTerminatorVar string = "VPNWEB_SIP_TERMINATOR"
+const sipDefaultTerminator string = "\r\n"
 
 type Credentials struct {
 	User     string
@@ -34,11 +33,11 @@ func getConfigFromEnv(envVar string) string {
 }
 
 func setupTerminatorFromEnv() {
-	config.FallbackToEnv(&TelnetTerminator, SipTerminatorVar, SipDefaultTerminator)
-	if TelnetTerminator == "\\r" {
-		TelnetTerminator = "\r"
-	} else if TelnetTerminator == "\\r\\n" {
-		TelnetTerminator = "\r\n"
+	config.FallbackToEnv(&telnetTerminator, sipTerminatorVar, sipDefaultTerminator)
+	if telnetTerminator == "\\r" {
+		telnetTerminator = "\r"
+	} else if telnetTerminator == "\\r\\n" {
+		telnetTerminator = "\r\n"
 	}
 }
 
@@ -46,11 +45,11 @@ func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
 
 	log.Println("Initializing SIP2 authenticator")
 
-	SipUser := getConfigFromEnv(SipUserVar)
-	SipPass := getConfigFromEnv(SipPassVar)
-	SipHost := getConfigFromEnv(SipHostVar)
-	SipPort := getConfigFromEnv(SipPortVar)
-	SipLibrLoc := getConfigFromEnv(SipLibrLocVar)
+	SipUser := getConfigFromEnv(sipUserVar)
+	SipPass := getConfigFromEnv(sipPassVar)
+	SipHost := getConfigFromEnv(sipHostVar)
+	SipPort := getConfigFromEnv(sipPortVar)
+	SipLibrLoc := getConfigFromEnv(sipLibrLocVar)
 
 	setupTerminatorFromEnv()
 

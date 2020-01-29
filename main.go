@@ -4,23 +4,18 @@ import (
 	"log"
 	"net/http"
 
-	//"0xacab.org/leap/pkg/auth"
 	"0xacab.org/leap/vpnweb/pkg/auth"
 	"0xacab.org/leap/vpnweb/pkg/config"
 	"0xacab.org/leap/vpnweb/pkg/web"
 )
 
 func main() {
-	opts := new(config.Opts)
-	config.InitializeFlags(opts)
-	config.CheckConfigurationOptions(opts)
-
-	ci := web.NewCaInfo(opts.CaCrt, opts.CaKey)
-	ch := web.CertHandler{ci}
+	opts := config.NewOpts()
+	ch := web.NewCertHandler(opts.CaCrt, opts.CaKey)
 
 	/* protected routes */
 
-	/* TODO ----
+	/* TODO https://0xacab.org/leap/vpnweb/issues/4
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
 	*/
 
@@ -41,10 +36,10 @@ func main() {
 	pstr := ":" + opts.Port
 	log.Println("Listening in port", opts.Port)
 
-	if opts.Notls == true {
-		log.Fatal(http.ListenAndServe(pstr, nil))
-	} else {
+	if opts.tls == true {
 		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, nil))
+	} else {
+		log.Fatal(http.ListenAndServe(pstr, nil))
 
 	}
 }

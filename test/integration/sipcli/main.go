@@ -15,7 +15,7 @@ const authURI string = "http://%s:%s/3/auth"
 const certURI string = "http://%s:%s/3/cert"
 
 func formatCredentials(user, pass string) (string, error) {
-	c := sip2.Credentials{user, pass}
+	c := sip2.Credentials{User: user, Password: pass}
 	credJson, err := json.Marshal(c)
 	if err != nil {
 		return "", err

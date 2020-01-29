@@ -7,9 +7,9 @@ PROVIDER=deploy/public/provider.json
 build:
 	go build cmd/vpnweb/vpnweb.go
 demo-sip:
-	. config/CONFIG && ./vpnweb -notls -auth=sip
+	. config/CONFIG && ./vpnweb -auth=sip
 demo-anon:
-	. config/CONFIG && ./vpnweb -notls -auth=anon
+	. config/CONFIG && ./vpnweb -auth=anon
 clean:
 	rm -f public/1/*
 	rm public/ca.crt

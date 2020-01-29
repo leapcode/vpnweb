@@ -6,136 +6,136 @@ import (
 	"strings"
 )
 
-type FixedFieldSpec struct {
+const (
+	yes                  string = "Y"
+	trueVal              string = "1"
+	okVal                string = "ok"
+	language             string = "language"
+	patronStatus         string = "patron status"
+	date                 string = "transaction date"
+	patronIdentifier     string = "patron identifier"
+	patronPassword       string = "patron password"
+	personalName         string = "personal name"
+	screenMessage        string = "screen message"
+	institutionID        string = "institution id"
+	validPatron          string = "valid patron"
+	validPatronPassword  string = "valid patron password"
+	loginResponse        string = "Login Response"
+	patronStatusResponse string = "Patron Status Response"
+)
+
+type fixedFieldSpec struct {
 	length int
 	label  string
 }
 
-type FixedField struct {
-	spec  FixedFieldSpec
+type fixedField struct {
+	spec  fixedFieldSpec
 	value string
 }
 
-type VariableFieldSpec struct {
+type variableFieldSpec struct {
 	id    string
 	label string
 }
 
-type VariableField struct {
-	spec  VariableFieldSpec
+type variableField struct {
+	spec  variableFieldSpec
 	value string
 }
 
-type MessageSpec struct {
+type messageSpec struct {
 	id     int
 	label  string
-	fields []FixedFieldSpec
+	fields []fixedFieldSpec
 }
 
-type Message struct {
-	fields       []VariableField
-	fixed_fields []FixedField
-	msg_txt      string
+type message struct {
+	fields      []variableField
+	fixedFields []fixedField
+	msgTxt      string
 }
 
 type Parser struct {
-	getMessageSpecByCode   func(int) MessageSpec
-	getVariableFieldByCode func(string) VariableFieldSpec
-	getFixedFieldValue     func(*Message, string) (string, bool)
-	getFieldValue          func(*Message, string) (string, bool)
-	parseMessage           func(string) *Message
+	msgByCodeMap           map[int]messageSpec
+	variableFieldByCodeMap map[string]variableFieldSpec
 }
-
-const (
-	YES                  string = "Y"
-	TRUE                 string = "1"
-	Ok                   string = "ok"
-	Language             string = "language"
-	PatronStatus         string = "patron status"
-	Date                 string = "transaction date"
-	PatronIdentifier     string = "patron identifier"
-	PatronPassword       string = "patron password"
-	PersonalName         string = "personal name"
-	ScreenMessage        string = "screen message"
-	InstitutionId        string = "institution id"
-	ValidPatron          string = "valid patron"
-	ValidPatronPassword  string = "valid patron password"
-	LoginResponse        string = "Login Response"
-	PatronStatusResponse string = "Patron Status Response"
-)
 
 func getParser() *Parser {
 
-	LanguageSpec := FixedFieldSpec{3, Language}
-	PatronStatusSpec := FixedFieldSpec{14, PatronStatus}
-	DateSpec := FixedFieldSpec{18, Date}
-	OkSpec := FixedFieldSpec{1, Ok}
+	languageSpec := fixedFieldSpec{3, language}
+	patronStatusSpec := fixedFieldSpec{14, patronStatus}
+	dateSpec := fixedFieldSpec{18, date}
+	okSpec := fixedFieldSpec{1, okVal}
 
-	msgByCodeMap := map[int]MessageSpec{
-		94: MessageSpec{94, LoginResponse, []FixedFieldSpec{OkSpec}},
-		24: MessageSpec{24, PatronStatusResponse, []FixedFieldSpec{PatronStatusSpec, LanguageSpec, DateSpec}},
-	}
-
-	variableFieldByCodeMap := map[string]VariableFieldSpec{
-		"AA": VariableFieldSpec{"AA", PatronIdentifier},
-		"AD": VariableFieldSpec{"AD", PatronPassword},
-		"AE": VariableFieldSpec{"AE", PersonalName},
-		"AF": VariableFieldSpec{"AF", ScreenMessage},
-		"AO": VariableFieldSpec{"AO", InstitutionId},
-		"BL": VariableFieldSpec{"BL", ValidPatron},
-		"CQ": VariableFieldSpec{"CQ", ValidPatronPassword},
+	msgByCodeMap := map[int]messageSpec{
+		94: messageSpec{94, loginResponse, []fixedFieldSpec{okSpec}},
+		24: messageSpec{24, patronStatusResponse, []fixedFieldSpec{patronStatusSpec, languageSpec, dateSpec}},
 	}
 
-	parser := new(Parser)
-	parser.getMessageSpecByCode = func(code int) MessageSpec {
-		return msgByCodeMap[code]
-	}
-	parser.getVariableFieldByCode = func(code string) VariableFieldSpec {
-		return variableFieldByCodeMap[code]
-	}
-	parser.getFixedFieldValue = func(msg *Message, field string) (string, bool) {
-		for _, v := range msg.fixed_fields {
-			if v.spec.label == field {
-				return v.value, true
-			}
-		}
-		return "", false
-	}
-	parser.getFieldValue = func(msg *Message, field string) (string, bool) {
-		for _, v := range msg.fields {
-			if v.spec.label == field {
-				return v.value, true
-			}
-		}
-		return "", false
+	variableFieldByCodeMap := map[string]variableFieldSpec{
+		"AA": variableFieldSpec{"AA", patronIdentifier},
+		"AD": variableFieldSpec{"AD", patronPassword},
+		"AE": variableFieldSpec{"AE", personalName},
+		"AF": variableFieldSpec{"AF", screenMessage},
+		"AO": variableFieldSpec{"AO", institutionID},
+		"BL": variableFieldSpec{"BL", validPatron},
+		"CQ": variableFieldSpec{"CQ", validPatronPassword},
 	}
 
-	parser.parseMessage = func(msg string) *Message {
-		txt := msg[:len(msg)-len(TelnetTerminator)]
-		code, err := strconv.Atoi(txt[:2])
-		if nil != err {
-			log.Printf("Error parsing integer: %s\n", txt[:2])
-		}
-		spec := parser.getMessageSpecByCode(code)
-		txt = txt[2:]
+	return &Parser{msgByCodeMap, variableFieldByCodeMap}
+}
 
-		message := new(Message)
-		for _, sp := range spec.fields {
-			value := txt[:sp.length]
-			txt = txt[sp.length:]
-			message.fixed_fields = append(message.fixed_fields, FixedField{sp, value})
+func (p *Parser) getMessageSpecByCode(code int) messageSpec {
+	return p.msgByCodeMap[code]
+}
+
+func (p *Parser) getVariableFieldByCode(code string) variableFieldSpec {
+	return p.variableFieldByCodeMap[code]
+}
+
+func (p *Parser) getFixedFieldValue(msg *message, field string) (string, bool) {
+	for _, v := range msg.fixedFields {
+		if v.spec.label == field {
+			return v.value, true
 		}
-		if len(txt) == 0 {
-			return message
+	}
+	return "", false
+}
+
+func (p *Parser) getFieldValue(msg *message, field string) (string, bool) {
+	for _, v := range msg.fields {
+		if v.spec.label == field {
+			return v.value, true
 		}
-		for _, part := range strings.Split(txt, "|") {
-			if len(part) > 0 {
-				part_spec := parser.getVariableFieldByCode(part[:2])
-				value := part[2:]
-				message.fields = append(message.fields, VariableField{part_spec, value})
-			}
-		}
+	}
+	return "", false
+}
+
+func (p *Parser) parseMessage(msg string) *message {
+	txt := msg[:len(msg)-len(telnetTerminator)]
+	code, err := strconv.Atoi(txt[:2])
+	if nil != err {
+		log.Printf("Error parsing integer: %s\n", txt[:2])
+	}
+	spec := p.getMessageSpecByCode(code)
+	txt = txt[2:]
+
+	message := new(message)
+	for _, sp := range spec.fields {
+		value := txt[:sp.length]
+		txt = txt[sp.length:]
+		message.fixedFields = append(message.fixedFields, fixedField{sp, value})
+	}
+	if len(txt) == 0 {
 		return message
 	}
-	return parser
+	for _, part := range strings.Split(txt, "|") {
+		if len(part) > 0 {
+			partSpec := p.getVariableFieldByCode(part[:2])
+			value := part[2:]
+			message.fields = append(message.fields, variableField{partSpec, value})
+		}
+	}
+	return message
 }

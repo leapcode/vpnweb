@@ -31,7 +31,7 @@ type caInfo struct {
 	cacrt, cakey string
 }
 
-func NewCaInfo(cacrt string, cakey string) caInfo {
+func newCaInfo(cacrt string, cakey string) caInfo {
 	return caInfo{cacrt, cakey}
 }
 

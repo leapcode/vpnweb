@@ -5,13 +5,15 @@ import (
 	"0xacab.org/leap/vpnweb/pkg/config"
 	"0xacab.org/leap/vpnweb/pkg/web"
 	"github.com/auth0/go-jwt-middleware"
-	jwt "github.com/dgrijalva/jwt-go"
+	"github.com/dgrijalva/jwt-go"
 	"log"
 	"net/http"
 )
 
-const anonAuth string = "anon"
-const sip2Auth string = "sip"
+const (
+	anonAuth = "anon"
+	sip2Auth = "sip"
+)
 
 func bailOnBadAuthModule(module string) {
 	log.Fatal("Unknown auth module: '", module, "'. Should be one of: ", anonAuth, ", ", sip2Auth, ".")

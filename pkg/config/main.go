@@ -9,7 +9,7 @@ import (
 const DefaultAuthenticationModule string = "anon"
 
 type Opts struct {
-	Notls      bool
+	Tls        bool
 	CaCrt      string
 	CaKey      string
 	TlsCrt     string
@@ -18,8 +18,6 @@ type Opts struct {
 	Auth       string
 	AuthSecret string
 }
-
-var SIPTelnetTerminator string = ""
 
 func FallbackToEnv(variable *string, envVar, defaultVar string) {
 
@@ -51,10 +49,17 @@ func doTlsFilesSanityCheck(tlsCrt string, tlsKey string) {
 	}
 }
 
-func InitializeFlags(opts *Opts) {
-	flag.BoolVar(&opts.Notls, "notls", false, "Disable TLS on the service")
-	flag.StringVar(&opts.CaCrt, "caCrt", "", "Path to the CA public key")
-	flag.StringVar(&opts.CaKey, "caKey", "", "Path to the CA private key")
+func NewOpts() *Opts {
+	opts := new(Opts)
+	initializeFlags(opts)
+	checkConfigurationOptions(opts)
+	return opts
+}
+
+func initializeFlags(opts *Opts) {
+	flag.StringVar(&opts.CaCrt, "caCrt", "", "Path to the CA public key used for VPN certificates")
+	flag.StringVar(&opts.CaKey, "caKey", "", "Path to the CA private key used for VPN certificates")
+	flag.BoolVar(&opts.Tls, "tls", false, "Enable TLS on the service")
 	flag.StringVar(&opts.TlsCrt, "tlsCrt", "", "Path to the cert file for TLS")
 	flag.StringVar(&opts.TlsKey, "tlsKey", "", "Path to the key file for TLS")
 	flag.StringVar(&opts.Port, "port", "", "Port where the server will listen (default: 8000)")
@@ -71,7 +76,7 @@ func InitializeFlags(opts *Opts) {
 	FallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTH_SECRET", "")
 }
 
-func CheckConfigurationOptions(opts *Opts) {
+func checkConfigurationOptions(opts *Opts) {
 	if opts.CaCrt == "" {
 		log.Fatal("missing caCrt parameter")
 	}
@@ -79,17 +84,17 @@ func CheckConfigurationOptions(opts *Opts) {
 		log.Fatal("missing caKey parameter")
 	}
 
-	if opts.Notls == false {
+	if opts.Tls == true {
 		if opts.TlsCrt == "" {
-			log.Fatal("missing tls_crt parameter. maybe use -notls?")
+			log.Fatal("missing tls_crt parameter")
 		}
 		if opts.TlsKey == "" {
-			log.Fatal("missing tls_key parameter. maybe use -notls?")
+			log.Fatal("missing tls_key parameter")
 		}
 	}
 
 	doCaFilesSanityCheck(opts.CaCrt, opts.CaKey)
-	if opts.Notls == false {
+	if opts.Tls == true {
 		doTlsFilesSanityCheck(opts.TlsCrt, opts.TlsKey)
 	}
 

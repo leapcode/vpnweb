@@ -8,6 +8,12 @@ type CertHandler struct {
 	Cainfo caInfo
 }
 
+func NewCertHandler(caCrt, caKey string) CertHandler {
+	ci := newCaInfo(caCrt, caKey)
+	ch := CertHandler{ci}
+	return ch
+}
+
 func (ch *CertHandler) CertResponder(w http.ResponseWriter, r *http.Request) {
 	ch.Cainfo.CertWriter(w)
 }
