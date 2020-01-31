@@ -18,6 +18,7 @@ package web
 import (
 	"0xacab.org/leap/vpnweb/pkg/auth/creds"
 	"0xacab.org/leap/vpnweb/pkg/config"
+	"0xacab.org/leap/vpnweb/pkg/metrics"
 	"encoding/json"
 	"github.com/auth0/go-jwt-middleware"
 	"github.com/dgrijalva/jwt-go"
@@ -53,10 +54,13 @@ func AuthMiddleware(authenticationFunc func(*creds.Credentials) bool, opts *conf
 		valid := authenticationFunc(&c)
 
 		if !valid {
+			metrics.FailedLogins.Inc()
 			log.Println("Wrong auth for user", c.User)
 			http.Error(w, "Wrong user and/or password", http.StatusUnauthorized)
 			return
 		}
+
+		metrics.SuccessfulLogins.Inc()
 
 		if strings.ToLower(debugAuth) == "yes" {
 			log.Println("Valid auth for user", c.User)

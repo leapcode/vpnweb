@@ -7,6 +7,8 @@ import (
 	"0xacab.org/leap/vpnweb/pkg/auth"
 	"0xacab.org/leap/vpnweb/pkg/config"
 	"0xacab.org/leap/vpnweb/pkg/web"
+
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 )
 
 func main() {
@@ -31,6 +33,9 @@ func main() {
 	web.HttpFileHandler("/provider.json", opts.ApiPath+"provider.json")
 	web.HttpFileHandler("/ca.crt", opts.ProviderCaPath)
 	web.HttpFileHandler("/3/ca.crt", opts.ProviderCaPath)
+
+	/* prometheus metrics */
+	http.Handle("/metrics", promhttp.Handler())
 
 	pstr := ":" + opts.Port
 	log.Println("Listening in port", opts.Port)

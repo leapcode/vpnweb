@@ -16,6 +16,7 @@
 package web
 
 import (
+	"0xacab.org/leap/vpnweb/pkg/metrics"
 	"crypto/rand"
 	"crypto/rsa"
 	"crypto/tls"
@@ -96,4 +97,6 @@ func (ci *caInfo) CertWriter(out io.Writer) {
 
 	// Write the public key
 	pem.Encode(out, &pem.Block{Type: "CERTIFICATE", Bytes: certB})
+
+	metrics.DownloadedCerts.Inc()
 }
