@@ -13,28 +13,32 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package web
+package anon
 
 import (
-	"net/http"
+	"0xacab.org/leap/vpnweb/pkg/auth/creds"
+	"0xacab.org/leap/vpnweb/pkg/config"
 )
 
-type CertHandler struct {
-	Cainfo caInfo
+const Label string = "anon"
+
+// AnonAuthenticator will allow anyone to get access to a protected resource (Like VPN certificates).
+// Used by RiseupVPN
+type Authenticator struct {
 }
 
-func NewCertHandler(caCrt, caKey string) CertHandler {
-	ci := newCaInfo(caCrt, caKey)
-	ch := CertHandler{ci}
-	return ch
+func (a *Authenticator) GetLabel() string {
+	return Label
 }
 
-func (ch *CertHandler) CertResponder(w http.ResponseWriter, r *http.Request) {
-	ch.Cainfo.CertWriter(w)
+func (a *Authenticator) CheckCredentials(cred *creds.Credentials) bool {
+	return true
 }
 
-func HttpFileHandler(route string, path string) {
-	http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path)
-	})
+func (a *Authenticator) NeedsCredentials() bool {
+	return false
+}
+
+func GetAuthenticator(opts *config.Opts, skipInit bool) *Authenticator {
+	return &Authenticator{}
 }

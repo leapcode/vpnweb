@@ -12,6 +12,7 @@ import (
 func main() {
 	opts := config.NewOpts()
 	ch := web.NewCertHandler(opts.CaCrt, opts.CaKey)
+	authenticator := auth.GetAuthenticator(opts, false)
 
 	/* protected routes */
 
@@ -19,8 +20,8 @@ func main() {
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
 	*/
 
-	http.Handle("/3/cert", auth.RestrictedMiddleware(opts, ch))
-	http.HandleFunc("/3/auth", auth.AuthenticatorMiddleware(opts))
+	http.HandleFunc("/3/auth", web.AuthMiddleware(authenticator.CheckCredentials, opts))
+	http.Handle("/3/cert", web.RestrictedMiddleware(authenticator.NeedsCredentials, ch.CertResponder, opts))
 
 	/* static files */
 
@@ -36,7 +37,7 @@ func main() {
 	pstr := ":" + opts.Port
 	log.Println("Listening in port", opts.Port)
 
-	if opts.tls == true {
+	if opts.Tls == true {
 		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, nil))
 	} else {
 		log.Fatal(http.ListenAndServe(pstr, nil))

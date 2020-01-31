@@ -5,9 +5,9 @@ PROVIDER_TEMPLATE=scripts/templates/provider.json.jinja
 PROVIDER=deploy/public/provider.json
 
 build:
-	go build cmd/vpnweb/vpnweb.go
+	go build
 demo-sip:
-	. config/CONFIG && ./vpnweb -auth=sip
+	. config/CONFIG && ./vpnweb -auth=sip2
 demo-anon:
 	. config/CONFIG && ./vpnweb -auth=anon
 clean:

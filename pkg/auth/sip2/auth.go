@@ -1,33 +1,46 @@
+// Copyright (C) 2019 LEAP
+//
+// This program is free software: you can redistribute it and/or modify
+// it under the terms of the GNU General Public License as published by
+// the Free Software Foundation, either version 3 of the License, or
+// (at your option) any later version.
+//
+// This program is distributed in the hope that it will be useful,
+// but WITHOUT ANY WARRANTY; without even the implied warranty of
+// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+// GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License
+// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
 package sip2
 
 import (
-	"encoding/json"
-	"github.com/dgrijalva/jwt-go"
+	"errors"
 	"log"
-	"net/http"
 	"os"
-	"time"
 
 	"0xacab.org/leap/vpnweb/pkg/config"
 )
 
-const sipUserVar string = "VPNWEB_SIP_USER"
-const sipPassVar string = "VPNWEB_SIP_PASS"
-const sipPortVar string = "VPNWEB_SIP_PORT"
-const sipHostVar string = "VPNWEB_SIP_HOST"
-const sipLibrLocVar string = "VPNWEB_SIP_LIBR_LOCATION"
-const sipTerminatorVar string = "VPNWEB_SIP_TERMINATOR"
-const sipDefaultTerminator string = "\r\n"
+const (
+	sipUserVar           string = "VPNWEB_SIP_USER"
+	sipPassVar           string = "VPNWEB_SIP_PASS"
+	sipPortVar           string = "VPNWEB_SIP_PORT"
+	sipHostVar           string = "VPNWEB_SIP_HOST"
+	sipLibrLocVar        string = "VPNWEB_SIP_LIBR_LOCATION"
+	sipTerminatorVar     string = "VPNWEB_SIP_TERMINATOR"
+	sipDefaultTerminator string = "\r\n"
+)
 
-type Credentials struct {
-	User     string
-	Password string
-}
-
-func getConfigFromEnv(envVar string) string {
+func getConfigFromEnv(envVar, defaultVar string) string {
 	val, exists := os.LookupEnv(envVar)
 	if !exists {
-		log.Fatal("Need to set required env var:", envVar)
+		if defaultVar == "" {
+			log.Fatal("Need to set required env var: ", envVar)
+		} else {
+			return defaultVar
+		}
 	}
 	return val
 }
@@ -41,60 +54,40 @@ func setupTerminatorFromEnv() {
 	}
 }
 
-func SipAuthenticator(opts *config.Opts) http.HandlerFunc {
-
+func initializeSipConnection(skipConnect bool) (sipClient, error) {
 	log.Println("Initializing SIP2 authenticator")
 
-	SipUser := getConfigFromEnv(sipUserVar)
-	SipPass := getConfigFromEnv(sipPassVar)
-	SipHost := getConfigFromEnv(sipHostVar)
-	SipPort := getConfigFromEnv(sipPortVar)
-	SipLibrLoc := getConfigFromEnv(sipLibrLocVar)
+	user := getConfigFromEnv(sipUserVar, "")
+	pass := getConfigFromEnv(sipPassVar, "")
+	host := getConfigFromEnv(sipHostVar, "localhost")
+	port := getConfigFromEnv(sipPortVar, "6001")
+	loc := getConfigFromEnv(sipLibrLocVar, "")
 
 	setupTerminatorFromEnv()
 
-	sip := NewClient(SipHost, SipPort, SipLibrLoc)
+	sip := newClient(host, port, loc)
+
+	if skipConnect {
+		// mainly for testing purposes at the moment
+		return sip, nil
+	}
 
 	ok, err := sip.Connect()
 	if err != nil {
-		log.Fatal("Cannot connect sip client")
+		return sip, err
 	}
-	ok = sip.Login(SipUser, SipPass)
+	ok = sip.Login(user, pass)
 	if !ok {
-		log.Fatal("Error on SIP login")
-	} else {
-		log.Println("SIP login ok")
+		return sip, errors.New("SIP login error")
 	}
+	return sip, nil
+}
 
-	var authTokenHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		var c Credentials
+func GetAuthenticator(opts *config.Opts, skipConnect bool) *sipClient {
 
-		err := json.NewDecoder(r.Body).Decode(&c)
-		if err != nil {
-			log.Println("Auth request did not send valid json")
-			http.Error(w, err.Error(), http.StatusBadRequest)
-			return
-		}
-
-		if c.User == "" || c.Password == "" {
-			log.Println("Auth request did not include user or password")
-			http.Error(w, "missing user and/or password", http.StatusBadRequest)
-			return
-		}
-
-		valid := sip.CheckCredentials(c.User, c.Password)
-		if !valid {
-			log.Println("Wrong auth for user", c.User)
-			http.Error(w, "wrong user and/or password", http.StatusUnauthorized)
-			return
-		}
-
-		log.Println("Valid auth for user", c.User)
-		token := jwt.New(jwt.SigningMethodHS256)
-		claims := token.Claims.(jwt.MapClaims)
-		claims["exp"] = time.Now().Add(time.Hour * 24).Unix()
-		tokenString, _ := token.SignedString([]byte(opts.AuthSecret))
-		w.Write([]byte(tokenString))
-	})
-	return authTokenHandler
+	sip, err := initializeSipConnection(skipConnect)
+	if err != nil {
+		log.Fatal("Cannot initialize sip:", err)
+	}
+	return &sip
 }

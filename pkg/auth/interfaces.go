@@ -13,28 +13,14 @@
 // You should have received a copy of the GNU General Public License
 // along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
-package web
+package auth
 
 import (
-	"net/http"
+	"0xacab.org/leap/vpnweb/pkg/auth/creds"
 )
 
-type CertHandler struct {
-	Cainfo caInfo
-}
-
-func NewCertHandler(caCrt, caKey string) CertHandler {
-	ci := newCaInfo(caCrt, caKey)
-	ch := CertHandler{ci}
-	return ch
-}
-
-func (ch *CertHandler) CertResponder(w http.ResponseWriter, r *http.Request) {
-	ch.Cainfo.CertWriter(w)
-}
-
-func HttpFileHandler(route string, path string) {
-	http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path)
-	})
+type Authenticator interface {
+	GetLabel() string
+	NeedsCredentials() bool
+	CheckCredentials(*creds.Credentials) bool
 }
