@@ -1,7 +1,8 @@
 package main
 
 import (
-	"0xacab.org/leap/vpnweb/pkg/auth/sip2"
+	"0xacab.org/leap/vpnweb/pkg/auth/creds"
+	"crypto/tls"
 	"encoding/json"
 	"flag"
 	"fmt"
@@ -11,11 +12,11 @@ import (
 	"strings"
 )
 
-const authURI string = "http://%s:%s/3/auth"
-const certURI string = "http://%s:%s/3/cert"
+const authURI string = "https://%s:%s/3/auth"
+const certURI string = "https://%s:%s/3/cert"
 
 func formatCredentials(user, pass string) (string, error) {
-	c := sip2.Credentials{User: user, Password: pass}
+	c := creds.Credentials{User: user, Password: pass}
 	credJson, err := json.Marshal(c)
 	if err != nil {
 		return "", err
@@ -24,6 +25,7 @@ func formatCredentials(user, pass string) (string, error) {
 }
 
 func getToken(credJson, host, port string) string {
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	resp, err := http.Post(fmt.Sprintf(authURI, host, port), "text/json", strings.NewReader(credJson))
 	if err != nil {
 		log.Fatal("Error on auth request: ", err)
@@ -31,6 +33,8 @@ func getToken(credJson, host, port string) string {
 	defer resp.Body.Close()
 	if resp.StatusCode == 401 {
 		log.Println("401 UNAUTHORIZED")
+	} else if resp.StatusCode == 503 {
+		log.Println("503 SERVICE UNAVAILABLE")
 	}
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
@@ -42,6 +46,7 @@ func getToken(credJson, host, port string) string {
 func getCert(token, host, port string) string {
 	req, err := http.NewRequest("POST", fmt.Sprintf(certURI, host, port), strings.NewReader(""))
 	req.Header.Add("Authorization", fmt.Sprintf("Bearer %s", token))
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{InsecureSkipVerify: true}
 	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		log.Fatal("cannot read response body")
