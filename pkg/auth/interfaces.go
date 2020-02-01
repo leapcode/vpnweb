@@ -22,5 +22,5 @@ import (
 type Authenticator interface {
 	GetLabel() string
 	NeedsCredentials() bool
-	CheckCredentials(*creds.Credentials) bool
+	CheckCredentials(*creds.Credentials) (bool, error)
 }

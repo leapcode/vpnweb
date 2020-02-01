@@ -80,6 +80,8 @@ github.com/kr/logfmt v0.0.0-20140226030751-b84e30acd515/go.mod h1:+0opPa2QZZtGFB
 github.com/kr/pretty v0.1.0/go.mod h1:dAy3ld7l9f0ibDNOQOHHMYYIIbhfbHSm3C4ZsoJORNo=
 github.com/kr/pty v1.1.1/go.mod h1:pFQYn66WHrOpPYNljwOMqo10TkYh1fy3cYio2l3bCsQ=
 github.com/kr/text v0.1.0/go.mod h1:4Jbv+DJW3UT/LiOwJeYQe1efqtUx/iVham/4vfdArNI=
+github.com/linxiaozhi/go-telnet v0.0.0-20190217183315-a500ff0c2efc h1:FQTpORWGxHvz83hOXnlbdSuraUA4fumQ0dPDdCaxN7g=
+github.com/linxiaozhi/go-telnet v0.0.0-20190217183315-a500ff0c2efc/go.mod h1:kkwxiW1i3uS0OgPQO4bkgBDeJuinEx1uR5DOGE12IQA=
 github.com/mattn/go-gtk v0.0.0-20180216084204-5a311a1830ab/go.mod h1:PwzwfeB5syFHXORC3MtPylVcjIoTDT/9cvkKpEndGVI=
 github.com/mattn/go-gtk v0.0.0-20191030024613-af2e013261f5/go.mod h1:PwzwfeB5syFHXORC3MtPylVcjIoTDT/9cvkKpEndGVI=
 github.com/mattn/go-pointer v0.0.0-20171114154726-1d30dc4b6f28/go.mod h1:2zXcozF6qYGgmsG+SeTZz3oAbFLdD3OWqnUbNvJZAlc=

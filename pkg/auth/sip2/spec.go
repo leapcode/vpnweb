@@ -16,6 +16,7 @@
 package sip2
 
 import (
+	"errors"
 	"log"
 	"strconv"
 	"strings"
@@ -127,11 +128,22 @@ func (p *Parser) getFieldValue(msg *message, field string) (string, bool) {
 	return "", false
 }
 
-func (p *Parser) parseMessage(msg string) *message {
+func (p *Parser) parseMessage(msg string) (*message, error) {
+	/* FIXME */
+	/*
+		http: panic serving 186.26.116.7:1292: runtime error: slice bounds out of range
+	*/
+	if len(msg) == 0 {
+		return &message{}, errors.New("empty message")
+	}
+	if len(msg) < (2 + len(telnetTerminator)) {
+		return &message{}, errors.New("parseMessage: message too short")
+	}
 	txt := msg[:len(msg)-len(telnetTerminator)]
 	code, err := strconv.Atoi(txt[:2])
 	if nil != err {
 		log.Printf("Error parsing integer: %s\n", txt[:2])
+		return &message{}, errors.New("parseMessage: error parsing integer")
 	}
 	spec := p.getMessageSpecByCode(code)
 	txt = txt[2:]
@@ -143,7 +155,7 @@ func (p *Parser) parseMessage(msg string) *message {
 		message.fixedFields = append(message.fixedFields, fixedField{sp, value})
 	}
 	if len(txt) == 0 {
-		return message
+		return message, nil
 	}
 	for _, part := range strings.Split(txt, "|") {
 		if len(part) > 0 {
@@ -152,5 +164,5 @@ func (p *Parser) parseMessage(msg string) *message {
 			message.fields = append(message.fields, variableField{partSpec, value})
 		}
 	}
-	return message
+	return message, nil
 }

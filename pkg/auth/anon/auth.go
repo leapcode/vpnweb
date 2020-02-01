@@ -31,8 +31,8 @@ func (a *Authenticator) GetLabel() string {
 	return Label
 }
 
-func (a *Authenticator) CheckCredentials(cred *creds.Credentials) bool {
-	return true
+func (a *Authenticator) CheckCredentials(cred *creds.Credentials) (bool, error) {
+	return true, nil
 }
 
 func (a *Authenticator) NeedsCredentials() bool {

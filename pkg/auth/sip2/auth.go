@@ -16,7 +16,6 @@
 package sip2
 
 import (
-	"errors"
 	"log"
 	"os"
 
@@ -72,13 +71,10 @@ func initializeSipConnection(skipConnect bool) (sipClient, error) {
 		return sip, nil
 	}
 
-	ok, err := sip.Connect()
+	sip.setCredentials(user, pass)
+	_, err := sip.doConnect()
 	if err != nil {
 		return sip, err
-	}
-	ok = sip.Login(user, pass)
-	if !ok {
-		return sip, errors.New("SIP login error")
 	}
 	return sip, nil
 }

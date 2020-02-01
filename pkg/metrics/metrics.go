@@ -6,6 +6,11 @@ import (
 )
 
 var (
+	UnavailableLogins = promauto.NewCounter(prometheus.CounterOpts{
+		Name: "vpnweb_unavailable_service_logins_total",
+		Help: "The total number of failed logins (server error)",
+	})
+
 	FailedLogins = promauto.NewCounter(prometheus.CounterOpts{
 		Name: "vpnweb_failed_logins_total",
 		Help: "The total number of failed logins",

@@ -17,8 +17,9 @@ package sip2
 
 import (
 	"0xacab.org/leap/vpnweb/pkg/auth/creds"
+	"errors"
 	"fmt"
-	"github.com/reiver/go-telnet"
+	"github.com/linxiaozhi/go-telnet"
 	"log"
 	"time"
 )
@@ -33,43 +34,121 @@ type sipClient struct {
 	host     string
 	port     string
 	location string
-	conn     *telnet.Conn
+	user     string
+	pass     string
+	conn     gote.Connection
+	reqQueue chan request
 	parser   *Parser
 }
 
+type request struct {
+	msg      string
+	respChan chan response
+}
+
+type response struct {
+	msg string
+	err error
+}
+
 func newClient(host, port, location string) sipClient {
-	c := sipClient{host, port, location, nil, nil}
-	c.parser = getParser()
+	reqQ := make(chan request)
+	parser := getParser()
+	c := sipClient{host, port, location, "", "", nil, reqQ, parser}
 	return c
 }
 
-func (c *sipClient) Connect() (bool, error) {
-	conn, err := telnet.DialTo(c.host + ":" + c.port)
+func (c *sipClient) startDispatcher() {
+	go func() {
+		for {
+			req := <-c.reqQueue
+			resp, err := c.handleRequest(req.msg)
+			req.respChan <- response{resp, err}
+		}
+	}()
+}
+
+func (c *sipClient) sendRequest(msg string) (string, error) {
+	respChan := make(chan response)
+	c.reqQueue <- request{msg, respChan}
+	resp := <-respChan
+	return resp.msg, resp.err
+}
+
+func (c *sipClient) handleRequest(msg string) (string, error) {
+	err := telnetSend(c.conn, msg)
+	if err != nil {
+		return "", err
+	}
+	resp, err := telnetRead(c.conn)
+	return resp, err
+}
+
+func (c *sipClient) doConnect() (bool, error) {
+	_, err := c.connect()
+	if err != nil {
+		return false, err
+	}
+	_, err = c.login()
+	if err != nil {
+		return false, err
+	}
+	c.startDispatcher()
+	return true, nil
+
+}
+
+func (c *sipClient) setCredentials(user, pass string) {
+	c.user = user
+	c.pass = pass
+}
+
+/* TODO heartbeat function -------------------------------------------------- */
+
+func (c *sipClient) connect() (bool, error) {
+	conn, err := gote.DialTimeout("tcp", c.host+":"+c.port, time.Second*2)
 	if nil != err {
-		log.Println("error", err)
+		log.Println("connect error:", err)
 		return false, err
 	}
 	c.conn = conn
 	return true, nil
 }
 
-func (c *sipClient) Login(user, pass string) bool {
-	loginStr := fmt.Sprintf(loginRequestTemplate, user, pass, c.location)
+func (c *sipClient) login() (bool, error) {
+	loginStr := fmt.Sprintf(loginRequestTemplate, c.user, c.pass, c.location)
 	if nil == c.conn {
 		fmt.Println("error! null connection")
+		return false, errors.New("null connection received")
 	}
-	telnetSend(c.conn, loginStr)
-	loginResp := telnetRead(c.conn)
-	msg := c.parseResponse(loginResp)
+
+	err := telnetSend(c.conn, loginStr)
+	if err != nil {
+		log.Println("Error while sending request")
+		return false, err
+	}
+
+	loginResp, err := telnetRead(c.conn)
+	if err != nil {
+		log.Println("login error on read: ", err)
+		return false, err
+	}
+
+	msg, err := c.parseResponse(loginResp)
+	if err != nil {
+		log.Println("login error:", err)
+		return false, err
+	}
 	if value, ok := c.parser.getFixedFieldValue(msg, okVal); ok && value == trueVal {
-		return true
+		log.Println("SIP admin login OK")
+		return true, nil
 	}
-	return false
+	return false, nil
 }
 
-func (c *sipClient) parseResponse(txt string) *message {
-	msg := c.parser.parseMessage(txt)
-	return msg
+func (c *sipClient) parseResponse(txt string) (*message, error) {
+	msg, err := c.parser.parseMessage(txt)
+	return msg, err
 }
 
 /* Authenticator interface */
@@ -82,24 +161,35 @@ func (c *sipClient) NeedsCredentials() bool {
 	return true
 }
 
-func (c *sipClient) CheckCredentials(credentials *creds.Credentials) bool {
+func (c *sipClient) CheckCredentials(credentials *creds.Credentials) (bool, error) {
+
 	currentTime := time.Now()
 	user := credentials.User
 	passwd := credentials.Password
+
 	statusRequest := fmt.Sprintf(
 		statusRequestTemplate,
 		currentTime.Format("20060102"),
 		currentTime.Format("150102"),
 		c.location, user, passwd)
-	telnetSend(c.conn, statusRequest)
 
-	statusMsg := c.parseResponse(telnetRead(c.conn))
-	if value, ok := c.parser.getFieldValue(statusMsg, validPatron); ok && value == yes {
-		if value, ok := c.parser.getFieldValue(statusMsg, validPatronPassword); ok && value == yes {
-			return true
-		}
+	statusMsg := &message{}
+	resp, err := c.sendRequest(statusRequest)
+	if err != nil {
+		return false, err
 	}
 
-	// TODO log whatever error we can find (AF, Screen Message, for instance)
-	return false
+	statusMsg, err = c.parseResponse(resp)
+	if err != nil {
+		log.Println("Error while parsing response")
+		return false, err
+	}
+	if value, ok := c.parser.getFieldValue(statusMsg, validPatron); ok && value == yes {
+		if value, ok := c.parser.getFieldValue(statusMsg, validPatronPassword); ok && value == yes {
+			return true, nil
+		}
+		// TODO log whatever error we can find (AF, Screen Message, for instance)
+	}
+
+	return false, errors.New("unknown error while checking credentials")
 }

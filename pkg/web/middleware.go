@@ -31,10 +31,17 @@ import (
 
 const debugAuth string = "VPNWEB_DEBUG_AUTH"
 
-func AuthMiddleware(authenticationFunc func(*creds.Credentials) bool, opts *config.Opts) http.HandlerFunc {
-	debugAuth, exists := os.LookupEnv(debugAuth)
+func isDebugAuthEnabled(s string) bool {
+	if strings.ToLower(s) == "yes" || strings.ToLower(s) == "true" {
+		return true
+	}
+	return false
+}
+
+func AuthMiddleware(authenticationFunc func(*creds.Credentials) (bool, error), opts *config.Opts) http.HandlerFunc {
+	debugFlag, exists := os.LookupEnv(debugAuth)
 	if !exists {
-		debugAuth = "false"
+		debugFlag = "false"
 	}
 	var authHandler = http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		var c creds.Credentials
@@ -51,18 +58,27 @@ func AuthMiddleware(authenticationFunc func(*creds.Credentials) bool, opts *conf
 			return
 		}
 
-		valid := authenticationFunc(&c)
+		valid, err := authenticationFunc(&c)
 
 		if !valid {
-			metrics.FailedLogins.Inc()
-			log.Println("Wrong auth for user", c.User)
-			http.Error(w, "Wrong user and/or password", http.StatusUnauthorized)
-			return
+			if err != nil {
+				metrics.UnavailableLogins.Inc()
+				log.Println("Error while checking credentials: ", err)
+				http.Error(w, "Auth service unavailable", http.StatusServiceUnavailable)
+				return
+			} else {
+				metrics.FailedLogins.Inc()
+				if isDebugAuthEnabled(debugFlag) {
+					log.Println("Wrong credentials for user", c.User)
+				}
+				http.Error(w, "Wrong user and/or password", http.StatusUnauthorized)
+				return
+			}
 		}
 
 		metrics.SuccessfulLogins.Inc()
 
-		if strings.ToLower(debugAuth) == "yes" {
+		if isDebugAuthEnabled(debugFlag) {
 			log.Println("Valid auth for user", c.User)
 		}
 		token := jwt.New(jwt.SigningMethodHS256)

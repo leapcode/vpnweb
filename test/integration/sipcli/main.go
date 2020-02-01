@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-const authURI string = "https://%s:%s/3/auth"
-const certURI string = "https://%s:%s/3/cert"
+const authURI string = "%s:%s/3/auth"
+const certURI string = "%s:%s/3/cert"
 
 func formatCredentials(user, pass string) (string, error) {
 	c := creds.Credentials{User: user, Password: pass}
