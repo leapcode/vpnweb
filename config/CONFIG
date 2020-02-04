@@ -14,3 +14,6 @@ export VPNWEB_SIP_HOST="localhost"
 export VPNWEB_SIP_PORT="6001"
 export VPNWEB_SIP_LIBR_LOCATION=testlibrary
 export VPNWEB_SIP_TERMINATOR="\r"
+
+#export VPNWEB_API_PATH="./public"
+#export VPNWEB_PROVIDER_CA="./public/ca.crt"

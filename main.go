@@ -27,12 +27,12 @@ func main() {
 
 	/* TODO -- pass static file path in options */
 
-	web.HttpFileHandler("/3/configs.json", "./public/3/configs.json")
-	web.HttpFileHandler("/3/service.json", "./public/3/service.json")
-	web.HttpFileHandler("/3/config/eip-service.json", "./public/3/eip-service.json")
-	web.HttpFileHandler("/3/ca.crt", "./public/ca.crt")
-	web.HttpFileHandler("/provider.json", "./public/provider.json")
-	web.HttpFileHandler("/ca.crt", "./public/ca.crt")
+	web.HttpFileHandler("/3/configs.json", opts.ApiPath+"/3/configs.json")
+	web.HttpFileHandler("/3/service.json", opts.ApiPath+"/3/service.json")
+	web.HttpFileHandler("/3/config/eip-service.json", opts.ApiPath+"/3/eip-service.json")
+	web.HttpFileHandler("/provider.json", opts.ApiPath+"provider.json")
+	web.HttpFileHandler("/ca.crt", opts.ProviderCaPath)
+	web.HttpFileHandler("/3/ca.crt", opts.ProviderCaPath)
 
 	pstr := ":" + opts.Port
 	log.Println("Listening in port", opts.Port)
