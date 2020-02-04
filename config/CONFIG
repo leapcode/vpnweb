@@ -1,5 +1,7 @@
 # general variables
 
+export VPNWEB_API_PATH="./public"
+export VPNWEB_PROVIDER_CA="./public/ca.crt"
 export VPNWEB_AUTH=sip
 export VPNWEB_CAKEY=test/files/ca.key
 export VPNWEB_CACRT=test/files/ca.crt
@@ -15,5 +17,3 @@ export VPNWEB_SIP_PORT="6001"
 export VPNWEB_SIP_LIBR_LOCATION=testlibrary
 export VPNWEB_SIP_TERMINATOR="\r"
 
-#export VPNWEB_API_PATH="./public"
-#export VPNWEB_PROVIDER_CA="./public/ca.crt"

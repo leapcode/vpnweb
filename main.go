@@ -25,8 +25,6 @@ func main() {
 
 	/* static files */
 
-	/* TODO -- pass static file path in options */
-
 	web.HttpFileHandler("/3/configs.json", opts.ApiPath+"/3/configs.json")
 	web.HttpFileHandler("/3/service.json", opts.ApiPath+"/3/service.json")
 	web.HttpFileHandler("/3/config/eip-service.json", opts.ApiPath+"/3/eip-service.json")
