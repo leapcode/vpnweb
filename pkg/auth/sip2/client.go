@@ -28,17 +28,20 @@ const (
 	Label                 string = "sip2"
 	loginRequestTemplate  string = "9300CN%s|CO%s|CP%s|"
 	statusRequestTemplate string = "23000%s    %sAO%s|AA%s|AD%s|"
+	scStatusRequest       string = "9901002.00"
+	heartBeatSeconds             = 240
 )
 
 type sipClient struct {
-	host     string
-	port     string
-	location string
-	user     string
-	pass     string
-	conn     gote.Connection
-	reqQueue chan request
-	parser   *Parser
+	host          string
+	port          string
+	location      string
+	user          string
+	pass          string
+	conn          gote.Connection
+	heartBeatDone chan bool
+	reqQueue      chan request
+	parser        *Parser
 }
 
 type request struct {
@@ -54,7 +57,7 @@ type response struct {
 func newClient(host, port, location string) sipClient {
 	reqQ := make(chan request)
 	parser := getParser()
-	c := sipClient{host, port, location, "", "", nil, reqQ, parser}
+	c := sipClient{host, port, location, "", "", nil, nil, reqQ, parser}
 	return c
 }
 
@@ -64,6 +67,30 @@ func (c *sipClient) startDispatcher() {
 			req := <-c.reqQueue
 			resp, err := c.handleRequest(req.msg)
 			req.respChan <- response{resp, err}
+		}
+	}()
+}
+
+func (c *sipClient) startHeartBeat() {
+	ticker := time.NewTicker(heartBeatSeconds * time.Second)
+	c.heartBeatDone = make(chan bool)
+	go func() {
+		for {
+			select {
+			case <-c.heartBeatDone:
+				log.Println("Stopping heartbeat")
+				return
+			case <-ticker.C:
+				resp, err := c.sendRequest(scStatusRequest)
+				/* TODO
+				   for now we are only interested in letting the server
+				   know that we are alive.
+				   but we could parse the response fields */
+				if err != nil {
+					log.Println(">> status error:", err)
+				}
+				log.Println(">> sip status:", resp)
+			}
 		}
 	}()
 }
@@ -84,7 +111,7 @@ func (c *sipClient) handleRequest(msg string) (string, error) {
 	return resp, err
 }
 
-func (c *sipClient) doConnect() (bool, error) {
+func (c *sipClient) doConnectAndReact() (bool, error) {
 	_, err := c.connect()
 	if err != nil {
 		return false, err
@@ -94,6 +121,7 @@ func (c *sipClient) doConnect() (bool, error) {
 		return false, err
 	}
 	c.startDispatcher()
+	c.startHeartBeat()
 	return true, nil
 
 }
@@ -102,8 +130,6 @@ func (c *sipClient) setCredentials(user, pass string) {
 	c.user = user
 	c.pass = pass
 }
-
-/* TODO heartbeat function -------------------------------------------------- */
 
 func (c *sipClient) connect() (bool, error) {
 	conn, err := gote.DialTimeout("tcp", c.host+":"+c.port, time.Second*2)
@@ -144,6 +170,11 @@ func (c *sipClient) login() (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (c *sipClient) close() {
+	c.heartBeatDone <- true
+	c.conn.Close()
 }
 
 func (c *sipClient) parseResponse(txt string) (*message, error) {

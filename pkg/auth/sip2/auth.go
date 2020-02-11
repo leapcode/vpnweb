@@ -67,12 +67,12 @@ func initializeSipConnection(skipConnect bool) (sipClient, error) {
 	sip := newClient(host, port, loc)
 
 	if skipConnect {
-		// mainly for testing purposes at the moment
+		// for testing purposes
 		return sip, nil
 	}
 
 	sip.setCredentials(user, pass)
-	_, err := sip.doConnect()
+	_, err := sip.doConnectAndReact()
 	if err != nil {
 		return sip, err
 	}
