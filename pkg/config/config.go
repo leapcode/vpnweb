@@ -30,6 +30,7 @@ type Opts struct {
 	TlsCrt         string
 	TlsKey         string
 	Port           string
+	MetricsPort    string
 	Auth           string
 	AuthSecret     string
 	ApiPath        string
@@ -87,8 +88,8 @@ func initializeFlags(opts *Opts) {
 	flag.StringVar(&opts.TlsCrt, "tlsCrt", "", "Path to the cert file for TLS")
 	flag.StringVar(&opts.TlsKey, "tlsKey", "", "Path to the key file for TLS")
 	flag.StringVar(&opts.Port, "port", "", "Port where the server will listen (default: 8000)")
-	flag.StringVar(&opts.Auth, "auth", "", "Authentication module (ano, sip2)")
-	flag.StringVar(&opts.AuthSecret, "authSecret", "", "Authentication secret (optional)")
+	flag.StringVar(&opts.MetricsPort, "metricsPort", "", "Port where the metrics server will listen (default: 8001)")
+	flag.StringVar(&opts.Auth, "auth", "", "Authentication module (anon, sip2)")
 	flag.StringVar(&opts.ApiPath, "apiPath", "", "Path to the API public files")
 	flag.StringVar(&opts.ProviderCaPath, "providerCaCrt", "", "Path to the provider CA certificate")
 	flag.Parse()
@@ -98,6 +99,7 @@ func initializeFlags(opts *Opts) {
 	FallbackToEnv(&opts.TlsCrt, "VPNWEB_TLSCRT", "")
 	FallbackToEnv(&opts.TlsKey, "VPNWEB_TLSKEY", "")
 	FallbackToEnv(&opts.Port, "VPNWEB_PORT", "8000")
+	FallbackToEnv(&opts.MetricsPort, "VPNWEB_METRICS_PORT", "8001")
 	FallbackToEnv(&opts.Auth, "VPNWEB_AUTH", DefaultAuthenticationModule)
 	FallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTH_SECRET", "")
 	FallbackToEnv(&opts.ApiPath, "VPNWEB_API_PATH", "/etc/leap/config/vpn")

@@ -14,7 +14,8 @@ authentication credentials).
 |-------------------|:--------------------:|----------------------|-------------------------------------------------------:|
 | **apiPath**       | `VPNWEB_API_PATH`    | /etc/leap/config/vpn | _Path for the public API static files_                 |
 | **providerCaCrt** | `VPNWEB_PROVIDER_CA` | /etc/leap/ca/ca.crt  | _Path for the provider CA certificate_                 |
-| **port**          | `VPNWEB_PORT`        | 8000                 | _Port where the server will listen_                    |
+| **port**          | `VPNWEB_PORT`        | 8000                 | _Port where the api server will listen_                |
+| **metricsPort**   | `VPNWEB_METRICS_PORT`| 8001                 | _Port where the metrics server will listen_            |
 | **tls**           |                      | false                | _Enable TLS on the service_                            |
 | **tlsCrt**        | `VPNWEB_TLSCRT`      |                      | _Path to the cert file for TLS_                        |
 | **tlsKey**        | `VPNWEB_TLSKEY`      |                      | _Path to the key file for TLS_                         |

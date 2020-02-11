@@ -33,8 +33,8 @@ func (ch *CertHandler) CertResponder(w http.ResponseWriter, r *http.Request) {
 	ch.Cainfo.CertWriter(w)
 }
 
-func HttpFileHandler(route string, path string) {
-	http.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
+func HttpFileHandler(mux *http.ServeMux, route string, path string) {
+	mux.HandleFunc(route, func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, path)
 	})
 }

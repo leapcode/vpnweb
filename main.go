@@ -16,34 +16,42 @@ func main() {
 	ch := web.NewCertHandler(opts.CaCrt, opts.CaKey)
 	authenticator := auth.GetAuthenticator(opts, false)
 
+	srv := http.NewServeMux()
+
 	/* protected routes */
 
 	/* TODO https://0xacab.org/leap/vpnweb/issues/4
 	http.HandleFunc("/3/refresh-token", auth.RefreshAuthMiddleware(opts.Auth))
 	*/
-
-	http.HandleFunc("/3/auth", web.AuthMiddleware(authenticator.CheckCredentials, opts))
-	http.Handle("/3/cert", web.RestrictedMiddleware(authenticator.NeedsCredentials, ch.CertResponder, opts))
+	srv.HandleFunc("/3/auth", web.AuthMiddleware(authenticator.CheckCredentials, opts))
+	srv.Handle("/3/cert", web.RestrictedMiddleware(authenticator.NeedsCredentials, ch.CertResponder, opts))
 
 	/* static files */
 
-	web.HttpFileHandler("/3/configs.json", opts.ApiPath+"/3/configs.json")
-	web.HttpFileHandler("/3/service.json", opts.ApiPath+"/3/service.json")
-	web.HttpFileHandler("/3/config/eip-service.json", opts.ApiPath+"/3/eip-service.json")
-	web.HttpFileHandler("/provider.json", opts.ApiPath+"provider.json")
-	web.HttpFileHandler("/ca.crt", opts.ProviderCaPath)
-	web.HttpFileHandler("/3/ca.crt", opts.ProviderCaPath)
+	web.HttpFileHandler(srv, "/3/configs.json", opts.ApiPath+"/3/configs.json")
+	web.HttpFileHandler(srv, "/3/service.json", opts.ApiPath+"/3/service.json")
+	web.HttpFileHandler(srv, "/3/config/eip-service.json", opts.ApiPath+"/3/eip-service.json")
+	web.HttpFileHandler(srv, "/provider.json", opts.ApiPath+"provider.json")
+	web.HttpFileHandler(srv, "/ca.crt", opts.ProviderCaPath)
+	web.HttpFileHandler(srv, "/3/ca.crt", opts.ProviderCaPath)
+
+	mtr := http.NewServeMux()
+	mtr.Handle("/metrics", promhttp.Handler())
 
 	/* prometheus metrics */
-	http.Handle("/metrics", promhttp.Handler())
+	go func() {
+		pstr := ":" + opts.MetricsPort
+		log.Println("/metrics endpoint in port", opts.MetricsPort)
+		log.Fatal(http.ListenAndServe(pstr, mtr))
+	}()
 
+	/* api server */
 	pstr := ":" + opts.Port
-	log.Println("Listening in port", opts.Port)
-
+	log.Println("API listening in port", opts.Port)
 	if opts.Tls == true {
-		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, nil))
+		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, srv))
 	} else {
-		log.Fatal(http.ListenAndServe(pstr, nil))
+		log.Fatal(http.ListenAndServe(pstr, srv))
 
 	}
 }
