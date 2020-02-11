@@ -52,6 +52,5 @@ func main() {
 		log.Fatal(http.ListenAndServeTLS(pstr, opts.TlsCrt, opts.TlsKey, srv))
 	} else {
 		log.Fatal(http.ListenAndServe(pstr, srv))
-
 	}
 }
