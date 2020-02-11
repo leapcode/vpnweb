@@ -61,10 +61,10 @@ func newClient(host, port, location string) sipClient {
 	return c
 }
 
+// starts a dispatcher goroutine that ensures that all sip requests are serialized
 func (c *sipClient) startDispatcher() {
 	go func() {
-		for {
-			req := <-c.reqQueue
+		for req := range c.reqQueue {
 			resp, err := c.handleRequest(req.msg)
 			req.respChan <- response{resp, err}
 		}
@@ -102,6 +102,7 @@ func (c *sipClient) sendRequest(msg string) (string, error) {
 	return resp.msg, resp.err
 }
 
+// handleRequest should not be used directly: dipatcher should be the only caller. use sendRequest instead.
 func (c *sipClient) handleRequest(msg string) (string, error) {
 	err := telnetSend(c.conn, msg)
 	if err != nil {
