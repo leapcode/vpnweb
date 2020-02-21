@@ -220,8 +220,10 @@ func (c *sipClient) CheckCredentials(credentials *creds.Credentials) (bool, erro
 		if value, ok := c.parser.getFieldValue(statusMsg, validPatronPassword); ok && value == yes {
 			return true, nil
 		}
-		// TODO log whatever error we can find (AF, Screen Message, for instance)
 	}
+
+	// TODO log whatever error we can find (AF, Screen Message, for instance)
+	log.Printf("AUTH ERROR. RESPONSE: %s\n", resp)
 
 	return false, errors.New("unknown error while checking credentials")
 }
