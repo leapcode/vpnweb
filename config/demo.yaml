@@ -37,6 +37,6 @@ gateways:
 provider:
     - name: "demo provider"
     - description: "this is a demo provider"
-    - domain: pt.demo.bitmask.net:8000
-    - api_uri: pt.demo.bitmask.net:8000
-    - fingerprint: "SHA256: 13A6456F7A303E55B8E575D7C53A967C6A524307E69A47A86DA232830AD283DB"
+    - domain: demo.bitmask.net:9000
+    - api_uri: demo.bitmask.net:9000
+    - fingerprint: "SHA256: F3340B115F69B16C1B7C52C85A0A4A752C64B10670109B4032BA612B782D8753"
