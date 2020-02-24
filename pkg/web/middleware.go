@@ -64,14 +64,14 @@ func AuthMiddleware(authenticationFunc func(*creds.Credentials) (bool, error), o
 			if err != nil {
 				metrics.UnavailableLogins.Inc()
 				log.Println("Error while checking credentials: ", err)
-				http.Error(w, "Auth service unavailable", http.StatusServiceUnavailable)
+				http.Error(w, "503: Auth service unavailable", http.StatusServiceUnavailable)
 				return
 			} else {
 				metrics.FailedLogins.Inc()
 				if isDebugAuthEnabled(debugFlag) {
 					log.Println("Wrong credentials for user", c.User)
 				}
-				http.Error(w, "Wrong user and/or password", http.StatusUnauthorized)
+				http.Error(w, "401: Wrong user and/or password", http.StatusUnauthorized)
 				return
 			}
 		}

@@ -24,19 +24,32 @@ import (
 
 const (
 	yes                  string = "Y"
+	no                   string = "N"
 	trueVal              string = "1"
+	falseVal             string = "0"
 	okVal                string = "ok"
 	language             string = "language"
 	patronStatus         string = "patron status"
+	onlineStatus         string = "on-line status"
+	checkinOk            string = "checkin ok"
+	checkoutOk           string = "checkout ok"
+	renewalPolicy        string = "acs renewal policy"
+	statusUpdate         string = "status update ok"
+	offlineOK            string = "offline ok"
+	timeoutPeriod        string = "timeout period"
+	retriesAllowed       string = "retries allowed"
+	dateTimeSync         string = "date/time sync"
 	date                 string = "transaction date"
 	patronIdentifier     string = "patron identifier"
 	patronPassword       string = "patron password"
+	protocolVersion      string = "protocol version"
 	personalName         string = "personal name"
 	screenMessage        string = "screen message"
 	institutionID        string = "institution id"
 	validPatron          string = "valid patron"
 	validPatronPassword  string = "valid patron password"
 	loginResponse        string = "Login Response"
+	ascStatus            string = "ASC Status"
 	patronStatusResponse string = "Patron Status Response"
 )
 
@@ -66,10 +79,54 @@ type messageSpec struct {
 	fields []fixedFieldSpec
 }
 
+func toBool(val string) (bool, error) {
+	var ret bool
+	switch val {
+	case trueVal:
+		ret = true
+	case falseVal:
+		ret = false
+	case yes:
+		ret = true
+	case no:
+		ret = false
+	default:
+		return false, errors.New("cannot parse value")
+	}
+	return ret, nil
+}
+
 type message struct {
 	fields      []variableField
 	fixedFields []fixedField
 	msgTxt      string
+}
+
+func (m *message) getFieldValue(field string) (string, bool) {
+	for _, v := range m.fields {
+		if v.spec.label == field {
+			return v.value, true
+		}
+	}
+	return "", false
+}
+
+func (m *message) getFixedFieldValue(field string) (string, bool) {
+	for _, v := range m.fixedFields {
+		if v.spec.label == field {
+			return v.value, true
+		}
+	}
+	return "", false
+}
+
+func (m *message) getValueByCode(code string) (string, bool) {
+	for _, v := range m.fields {
+		if v.spec.id == code {
+			return v.value, true
+		}
+	}
+	return "", false
 }
 
 type Parser struct {
@@ -84,9 +141,21 @@ func getParser() *Parser {
 	dateSpec := fixedFieldSpec{18, date}
 	okSpec := fixedFieldSpec{1, okVal}
 
+	onlineStatusSpec := fixedFieldSpec{1, onlineStatus}
+	checkinOkSpec := fixedFieldSpec{1, checkinOk}
+	checkoutOkSpec := fixedFieldSpec{1, checkoutOk}
+	renewalSpec := fixedFieldSpec{1, renewalPolicy}
+	stUpdateSpec := fixedFieldSpec{1, statusUpdate}
+	offlineOkSpec := fixedFieldSpec{1, offlineOK}
+	timeoutSpec := fixedFieldSpec{3, timeoutPeriod}
+	retriesSpec := fixedFieldSpec{3, retriesAllowed}
+	dateTimeSyncSpec := fixedFieldSpec{18, dateTimeSync}
+	protoSpec := fixedFieldSpec{4, protocolVersion}
+
 	msgByCodeMap := map[int]messageSpec{
-		94: messageSpec{94, loginResponse, []fixedFieldSpec{okSpec}},
 		24: messageSpec{24, patronStatusResponse, []fixedFieldSpec{patronStatusSpec, languageSpec, dateSpec}},
+		94: messageSpec{94, loginResponse, []fixedFieldSpec{okSpec}},
+		98: messageSpec{98, ascStatus, []fixedFieldSpec{onlineStatusSpec, checkinOkSpec, checkoutOkSpec, renewalSpec, stUpdateSpec, offlineOkSpec, timeoutSpec, retriesSpec, dateTimeSyncSpec, protoSpec}},
 	}
 
 	variableFieldByCodeMap := map[string]variableFieldSpec{
@@ -119,20 +188,7 @@ func (p *Parser) getFixedFieldValue(msg *message, field string) (string, bool) {
 	return "", false
 }
 
-func (p *Parser) getFieldValue(msg *message, field string) (string, bool) {
-	for _, v := range msg.fields {
-		if v.spec.label == field {
-			return v.value, true
-		}
-	}
-	return "", false
-}
-
 func (p *Parser) parseMessage(msg string) (*message, error) {
-	/* FIXME */
-	/*
-		http: panic serving 186.26.116.7:1292: runtime error: slice bounds out of range
-	*/
 	if len(msg) == 0 {
 		return &message{}, errors.New("empty message")
 	}

@@ -213,17 +213,32 @@ func (c *sipClient) CheckCredentials(credentials *creds.Credentials) (bool, erro
 
 	statusMsg, err = c.parseResponse(resp)
 	if err != nil {
-		log.Println("Error while parsing response")
+		log.Println("Error while parsing response:", resp)
 		return false, err
 	}
-	if value, ok := c.parser.getFieldValue(statusMsg, validPatron); ok && value == yes {
-		if value, ok := c.parser.getFieldValue(statusMsg, validPatronPassword); ok && value == yes {
+	if valid, err := isValidUser(statusMsg); valid {
+		if valid, err := isValidPassword(statusMsg); valid {
 			return true, nil
+		} else {
+			return false, err
 		}
+	} else {
+		return false, err
 	}
+}
 
-	// TODO log whatever error we can find (AF, Screen Message, for instance)
-	log.Printf("AUTH ERROR. RESPONSE: %s\n", resp)
+func isValidUser(m *message) (bool, error) {
+	value, ok := m.getFieldValue(validPatron)
+	if !ok {
+		return false, errors.New("parse error: expected BL field")
+	}
+	return toBool(value)
+}
 
-	return false, errors.New("unknown error while checking credentials")
+func isValidPassword(m *message) (bool, error) {
+	value, ok := m.getFieldValue(validPatronPassword)
+	if !ok {
+		return false, errors.New("parse error: expected CQ field")
+	}
+	return toBool(value)
 }
