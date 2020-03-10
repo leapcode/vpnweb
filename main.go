@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"path/filepath"
 
 	"0xacab.org/leap/vpnweb/pkg/auth"
 	"0xacab.org/leap/vpnweb/pkg/config"
@@ -28,10 +29,10 @@ func main() {
 
 	/* static files */
 
-	web.HttpFileHandler(srv, "/3/configs.json", opts.ApiPath+"/3/configs.json")
-	web.HttpFileHandler(srv, "/3/service.json", opts.ApiPath+"/3/service.json")
-	web.HttpFileHandler(srv, "/3/config/eip-service.json", opts.ApiPath+"/3/eip-service.json")
-	web.HttpFileHandler(srv, "/provider.json", opts.ApiPath+"provider.json")
+	web.HttpFileHandler(srv, "/3/configs.json", filepath.Join(opts.ApiPath, "3", "configs.json"))
+	web.HttpFileHandler(srv, "/3/service.json", filepath.Join(opts.ApiPath, "3", "service.json"))
+	web.HttpFileHandler(srv, "/3/config/eip-service.json", filepath.Join(opts.ApiPath, "3", "eip-service.json"))
+	web.HttpFileHandler(srv, "/provider.json", filepath.Join(opts.ApiPath, "provider.json"))
 	web.HttpFileHandler(srv, "/ca.crt", opts.ProviderCaPath)
 	web.HttpFileHandler(srv, "/3/ca.crt", opts.ProviderCaPath)
 
