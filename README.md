@@ -27,13 +27,13 @@ authentication credentials).
 
 SIP2 authentication:
 
-|  Env var                      | Description                                          |
-|:-----------------------------:|-----------------------------------------------------:|
-| `VPNWEB_SIP_USER`             | Administrative user for the SIP2 telnet interface    |
-| `VPNWEB_SIP_PASS`             | Administrative pass for the SIP2 telnet interface    |
-| `VPNWEB_SIP_HOST`             | Host to connect to the SIP2 telnet interface         |
-| `VPNWEB_SIP_PORT`             | Port to connect to the SIP2 telnet interface         |
-| `VPNWEB_SIP_LIBR_LOCATION`    | Library location identifier                          |
-| `VPNWEB_SIP_TERMINATOR`       | Telnet terminator used by the endpoint (default: \r) |
+|  Env var                      | Description                                            |
+|:-----------------------------:|-------------------------------------------------------:|
+| `VPNWEB_SIP_USER`             | Administrative user for the SIP2 telnet interface      |
+| `VPNWEB_SIP_PASS`             | Administrative pass for the SIP2 telnet interface      |
+| `VPNWEB_SIP_HOST`             | Host to connect to the SIP2 telnet interface           |
+| `VPNWEB_SIP_PORT`             | Port to connect to the SIP2 telnet interface           |
+| `VPNWEB_SIP_LIBR_LOCATION`    | Library location identifier                            |
+| `VPNWEB_SIP_TERMINATOR`       | Telnet terminator used by the endpoint (default: \r\n) |
 
 
