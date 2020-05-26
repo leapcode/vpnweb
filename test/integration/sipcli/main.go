@@ -75,8 +75,8 @@ func doAuthenticate(user, pass, host, port string) {
 
 func main() {
 	var host, port, user, pass string
-	flag.StringVar(&host, "host", "localhost", "Server to connect")
-	flag.StringVar(&port, "port", "8000", "port to connect")
+	flag.StringVar(&host, "host", "http://localhost", "Server to connect")
+	flag.StringVar(&port, "port", "8000", "port to connect to")
 	flag.StringVar(&user, "user", "", "sip user to authenticate")
 	flag.StringVar(&pass, "pass", "", "sip password to authenticate")
 	flag.Parse()
