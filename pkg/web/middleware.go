@@ -52,10 +52,18 @@ func AuthMiddleware(authenticationFunc func(*creds.Credentials) (bool, error), o
 			return
 		}
 
-		if c.User == "" || c.Password == "" {
-			log.Println("Auth request did not include user or password")
-			http.Error(w, "Missing user and/or password", http.StatusBadRequest)
-			return
+		if opts.PasswordPolicy == "ignore" {
+			if c.User == "" {
+				log.Println("Auth request did not include user")
+				http.Error(w, "Missing username", http.StatusBadRequest)
+				return
+			}
+		} else {
+			if c.User == "" || c.Password == "" {
+				log.Println("Auth request did not include user/password")
+				http.Error(w, "Missing username or password", http.StatusBadRequest)
+				return
+			}
 		}
 
 		valid, err := authenticationFunc(&c)

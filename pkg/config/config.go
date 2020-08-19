@@ -21,7 +21,10 @@ import (
 	"os"
 )
 
-const DefaultAuthenticationModule string = "anon"
+const (
+	DefaultAuthenticationModule string = "anon"
+	DefaultPasswordPolicy       string = "require"
+)
 
 type Opts struct {
 	Tls            bool
@@ -35,6 +38,7 @@ type Opts struct {
 	AuthSecret     string
 	ApiPath        string
 	ProviderCaPath string
+	PasswordPolicy string
 }
 
 func checkPathExists(path string) bool {
@@ -92,6 +96,7 @@ func initializeFlags(opts *Opts) {
 	flag.StringVar(&opts.Auth, "auth", "", "Authentication module (anon, sip2)")
 	flag.StringVar(&opts.ApiPath, "apiPath", "", "Path to the API public files")
 	flag.StringVar(&opts.ProviderCaPath, "providerCaCrt", "", "Path to the provider CA certificate")
+	flag.StringVar(&opts.PasswordPolicy, "passwordPolicy", DefaultPasswordPolicy, "Password policy, if used  (require|ignore)")
 	flag.Parse()
 
 	FallbackToEnv(&opts.CaCrt, "VPNWEB_CACRT", "")
@@ -104,6 +109,7 @@ func initializeFlags(opts *Opts) {
 	FallbackToEnv(&opts.AuthSecret, "VPNWEB_AUTH_SECRET", "")
 	FallbackToEnv(&opts.ApiPath, "VPNWEB_API_PATH", "/etc/leap/config/vpn")
 	FallbackToEnv(&opts.ProviderCaPath, "VPNWEB_PROVIDER_CA", "/etc/leap/ca/ca.crt")
+	FallbackToEnv(&opts.PasswordPolicy, "VPNWEB_PASSWORD_POLICY", DefaultPasswordPolicy)
 }
 
 func checkConfigurationOptions(opts *Opts) {
@@ -136,4 +142,7 @@ func checkConfigurationOptions(opts *Opts) {
 	}
 
 	log.Println("Authentication module:", opts.Auth)
+	if opts.Auth != DefaultAuthenticationModule {
+		log.Println("Password policy:", opts.PasswordPolicy)
+	}
 }

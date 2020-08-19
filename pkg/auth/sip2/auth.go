@@ -53,7 +53,7 @@ func setupTerminatorFromEnv() {
 	}
 }
 
-func initializeSipConnection(skipConnect bool) (sipClient, error) {
+func initializeSipConnection(skipConnect bool, passwordPolicy string) (sipClient, error) {
 	log.Println("Initializing SIP2 authenticator")
 
 	user := getConfigFromEnv(sipUserVar, "")
@@ -64,7 +64,7 @@ func initializeSipConnection(skipConnect bool) (sipClient, error) {
 
 	setupTerminatorFromEnv()
 
-	sip := newClient(host, port, loc)
+	sip := newClient(host, port, loc, passwordPolicy)
 
 	if skipConnect {
 		// for testing purposes
@@ -81,7 +81,7 @@ func initializeSipConnection(skipConnect bool) (sipClient, error) {
 
 func GetAuthenticator(opts *config.Opts, skipConnect bool) *sipClient {
 
-	sip, err := initializeSipConnection(skipConnect)
+	sip, err := initializeSipConnection(skipConnect, opts.PasswordPolicy)
 	if err != nil {
 		log.Fatal("Cannot initialize sip:", err)
 	}

@@ -33,15 +33,16 @@ const (
 )
 
 type sipClient struct {
-	host          string
-	port          string
-	location      string
-	user          string
-	pass          string
-	conn          gote.Connection
-	heartBeatDone chan bool
-	reqQueue      chan request
-	parser        *Parser
+	host           string
+	port           string
+	location       string
+	passwordPolicy string
+	user           string
+	pass           string
+	conn           gote.Connection
+	heartBeatDone  chan bool
+	reqQueue       chan request
+	parser         *Parser
 }
 
 type request struct {
@@ -54,10 +55,10 @@ type response struct {
 	err error
 }
 
-func newClient(host, port, location string) sipClient {
+func newClient(host, port, location, passwordPolicy string) sipClient {
 	reqQ := make(chan request)
 	parser := getParser()
-	c := sipClient{host, port, location, "", "", nil, nil, reqQ, parser}
+	c := sipClient{host, port, location, passwordPolicy, "", "", nil, nil, reqQ, parser}
 	return c
 }
 
@@ -217,6 +218,10 @@ func (c *sipClient) CheckCredentials(credentials *creds.Credentials) (bool, erro
 		return false, err
 	}
 	if valid, err := isValidUser(statusMsg); valid {
+		if c.passwordPolicy == "ignore" {
+			// passwordless library
+			return true, nil
+		}
 		if valid, err := isValidPassword(statusMsg); valid {
 			return true, nil
 		} else {
