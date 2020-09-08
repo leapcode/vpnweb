@@ -96,7 +96,7 @@ func initializeFlags(opts *Opts) {
 	flag.StringVar(&opts.Auth, "auth", "", "Authentication module (anon, sip2)")
 	flag.StringVar(&opts.ApiPath, "apiPath", "", "Path to the API public files")
 	flag.StringVar(&opts.ProviderCaPath, "providerCaCrt", "", "Path to the provider CA certificate")
-	flag.StringVar(&opts.PasswordPolicy, "passwordPolicy", DefaultPasswordPolicy, "Password policy, if used  (require|ignore)")
+	flag.StringVar(&opts.PasswordPolicy, "passwordPolicy", "", "Password policy, if used  (require|ignore)")
 	flag.Parse()
 
 	FallbackToEnv(&opts.CaCrt, "VPNWEB_CACRT", "")
