@@ -29,11 +29,16 @@ func main() {
 
 	/* static files */
 
+	web.HttpFileHandler(srv, "/provider.json", filepath.Join(opts.ApiPath, "provider.json"))
+	web.HttpFileHandler(srv, "/ca.crt", opts.ProviderCaPath)
 	web.HttpFileHandler(srv, "/3/configs.json", filepath.Join(opts.ApiPath, "3", "configs.json"))
 	web.HttpFileHandler(srv, "/3/service.json", filepath.Join(opts.ApiPath, "3", "service.json"))
 	web.HttpFileHandler(srv, "/3/config/eip-service.json", filepath.Join(opts.ApiPath, "3", "eip-service.json"))
-	web.HttpFileHandler(srv, "/provider.json", filepath.Join(opts.ApiPath, "provider.json"))
-	web.HttpFileHandler(srv, "/ca.crt", opts.ProviderCaPath)
+
+	web.HttpFileHandler(srv, "/4/configs.json", filepath.Join(opts.ApiPath, "4", "configs.json"))
+	web.HttpFileHandler(srv, "/4/service.json", filepath.Join(opts.ApiPath, "4", "service.json"))
+	web.HttpFileHandler(srv, "/4/config/eip-service.json", filepath.Join(opts.ApiPath, "4", "eip-service.json"))
+	web.HttpFileHandler(srv, "/4/ca.crt", opts.ProviderCaPath)
 
 	mtr := http.NewServeMux()
 	mtr.Handle("/metrics", promhttp.Handler())

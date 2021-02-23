@@ -1,6 +1,7 @@
 # general variables
 
 export VPNWEB_API_PATH="./public"
+export VPNWEB_API_VERSION="4"
 export VPNWEB_PROVIDER_CA="./public/ca.crt"
 export VPNWEB_AUTH=sip2
 export VPNWEB_CAKEY=test/files/ca.key
