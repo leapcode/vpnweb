@@ -34,7 +34,6 @@ func main() {
 	web.HttpFileHandler(srv, "/3/config/eip-service.json", filepath.Join(opts.ApiPath, "3", "eip-service.json"))
 	web.HttpFileHandler(srv, "/provider.json", filepath.Join(opts.ApiPath, "provider.json"))
 	web.HttpFileHandler(srv, "/ca.crt", opts.ProviderCaPath)
-	web.HttpFileHandler(srv, "/3/ca.crt", opts.ProviderCaPath)
 
 	mtr := http.NewServeMux()
 	mtr.Handle("/metrics", promhttp.Handler())
