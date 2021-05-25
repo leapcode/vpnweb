@@ -28,8 +28,8 @@ func NewCertHandler(caCrt, caKey string) CertHandler {
 	ch := CertHandler{ci}
 	return ch
 }
-
 func (ch *CertHandler) CertResponder(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Cache-Control", "no-cache") // do not cache
 	ch.Cainfo.CertWriter(w)
 }
 
