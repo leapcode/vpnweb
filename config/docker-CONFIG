@@ -1,0 +1,19 @@
+# general variables
+docker run  -it --rm \
+--net=host \
+-v `pwd`/test/files/:/test \
+-v `pwd`/public/:/public \
+-e VPNWEB_API_PATH="/public" \
+-e VPNWEB_PROVIDER_CA="/public/ca.crt" \
+-e VPNWEB_AUTH="sip2" \
+-e VPNWEB_CAKEY="/test/ca.key" \
+-e VPNWEB_CACRT="/test/ca.crt" \
+-e VPNWEB_PORT="8000" \
+-e VPNWEB_AUTH_SECRET="othaoPhejei8aidaeghaiVohie4d" \
+-e VPNWEB_SIP_USER="leap" \
+-e VPNWEB_SIP_PASS="Kohapassword1!" \
+-e VPNWEB_SIP_HOST="localhost" \
+-e VPNWEB_SIP_PORT="6001" \
+-e VPNWEB_SIP_LIBR_LOCATION="testlibrary" \
+-e VPNWEB_SIP_TERMINATOR="\r" \
+-e VPNWEB_DEBUG_AUTH="yes" leap-vpnweb:latest
