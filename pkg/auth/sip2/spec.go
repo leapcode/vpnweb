@@ -153,19 +153,19 @@ func getParser() *Parser {
 	protoSpec := fixedFieldSpec{4, protocolVersion}
 
 	msgByCodeMap := map[int]messageSpec{
-		24: messageSpec{24, patronStatusResponse, []fixedFieldSpec{patronStatusSpec, languageSpec, dateSpec}},
-		94: messageSpec{94, loginResponse, []fixedFieldSpec{okSpec}},
-		98: messageSpec{98, ascStatus, []fixedFieldSpec{onlineStatusSpec, checkinOkSpec, checkoutOkSpec, renewalSpec, stUpdateSpec, offlineOkSpec, timeoutSpec, retriesSpec, dateTimeSyncSpec, protoSpec}},
+		24: {24, patronStatusResponse, []fixedFieldSpec{patronStatusSpec, languageSpec, dateSpec}},
+		94: {94, loginResponse, []fixedFieldSpec{okSpec}},
+		98: {98, ascStatus, []fixedFieldSpec{onlineStatusSpec, checkinOkSpec, checkoutOkSpec, renewalSpec, stUpdateSpec, offlineOkSpec, timeoutSpec, retriesSpec, dateTimeSyncSpec, protoSpec}},
 	}
 
 	variableFieldByCodeMap := map[string]variableFieldSpec{
-		"AA": variableFieldSpec{"AA", patronIdentifier},
-		"AD": variableFieldSpec{"AD", patronPassword},
-		"AE": variableFieldSpec{"AE", personalName},
-		"AF": variableFieldSpec{"AF", screenMessage},
-		"AO": variableFieldSpec{"AO", institutionID},
-		"BL": variableFieldSpec{"BL", validPatron},
-		"CQ": variableFieldSpec{"CQ", validPatronPassword},
+		"AA": {"AA", patronIdentifier},
+		"AD": {"AD", patronPassword},
+		"AE": {"AE", personalName},
+		"AF": {"AF", screenMessage},
+		"AO": {"AO", institutionID},
+		"BL": {"BL", validPatron},
+		"CQ": {"CQ", validPatronPassword},
 	}
 
 	return &Parser{msgByCodeMap, variableFieldByCodeMap}
